@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DevInspector Ultra</string>
+    <string name="app_version">v1.0.0 Pro Deep</string>
+    <string name="tab_overview">Обзор</string>
+    <string name="tab_cpu">Процессор</string>
+    <string name="tab_memory">Память</string>
+    <string name="tab_battery">Батарея</string>
+    <string name="tab_display">Экран</string>
+    <string name="tab_sensors">Датчики</string>
+    <string name="tab_network">Сеть</string>
+    <string name="tab_cameras">Камеры</string>
+    <string name="tab_thermal">Термал</string>
+    <string name="tab_codecs">Кодеки &amp; DRM</string>
+    <string name="tab_hidden">Скрытые функции</string>
+    <string name="tab_props">Все свойства</string>
+    <string name="tab_settings">Настройки</string>
+    <string name="search_hint">Поиск параметров (например: boot, qcom, sec)...</string>
+    <string name="export_report">Экспорт отчёта</string>
+    <string name="copy_all">Копировать всё</string>
+</resources>

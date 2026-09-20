@@ -1,0 +1,22 @@
+# Build outputs & artifacts
+build/
+bin/
+gen/
+*.apk
+dist/*.apk
+!dist/.gitkeep
+__pycache__/
+*.pyc
+
+# Local tools & SDK
+tools/
+.tools/
+local.properties
+.gradle/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.vscode/

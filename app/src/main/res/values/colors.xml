@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cyber Dark Palette -->
+    <color name="bg_cyber">#0B0F14</color>
+    <color name="card_cyber">#151B23</color>
+    <color name="card_border_cyber">#212B36</color>
+    <color name="accent_blue">#58A6FF</color>
+    <color name="accent_green">#3FB950</color>
+    <color name="accent_amber">#D29922</color>
+    <color name="accent_red">#F85149</color>
+    <color name="accent_purple">#BC8CFF</color>
+    <color name="accent_cyan">#39C5BB</color>
+    <color name="text_primary">#E6EDF3</color>
+    <color name="text_secondary">#8B949E</color>
+    <color name="text_muted">#6E7681</color>
+
+    <!-- AMOLED Palette -->
+    <color name="bg_amoled">#000000</color>
+    <color name="card_amoled">#0D0D0D</color>
+    <color name="card_border_amoled">#1F1F1F</color>
+
+    <!-- Slate Palette -->
+    <color name="bg_slate">#181825</color>
+    <color name="card_slate">#1E1E2E</color>
+    <color name="card_border_slate">#313244</color>
+</resources>
