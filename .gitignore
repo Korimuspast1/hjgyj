@@ -3,8 +3,7 @@ build/
 bin/
 gen/
 *.apk
-dist/*.apk
-!dist/.gitkeep
+!dist/DevInspector-Ultra-v1.0.apk
 __pycache__/
 *.pyc
 
