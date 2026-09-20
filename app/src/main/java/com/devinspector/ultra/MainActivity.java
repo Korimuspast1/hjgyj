@@ -76,19 +76,19 @@ public class MainActivity extends Activity implements SensorEventListener {
     private TextView liveSensorValuesTv;
 
     private static final String[] TABS = {
-            "📊 Обзор",
-            "⚡ CPU",
-            "💾 Память",
-            "🔋 Батарея",
-            "📱 Экран",
-            "📡 Сеть",
-            "🧭 Датчики",
-            "📷 Камеры",
-            "🌡️ Термал",
-            "🎬 Кодеки",
-            "🕵️ Скрытые",
-            "📋 Свойства",
-            "⚙️ Настройки"
+            "Обзор",
+            "CPU",
+            "Память",
+            "Батарея",
+            "Экран",
+            "Сеть",
+            "Датчики",
+            "Камеры",
+            "Термал",
+            "Кодеки",
+            "Скрытые",
+            "Свойства",
+            "Настройки"
     };
 
     @Override
@@ -121,14 +121,14 @@ public class MainActivity extends Activity implements SensorEventListener {
         titleCol.setOrientation(LinearLayout.VERTICAL);
 
         TextView titleTv = new TextView(this);
-        titleTv.setText("DEVINSPECTOR ULTRA");
-        titleTv.setTextColor(tm.colorAccent);
-        titleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+        titleTv.setText("DEVINSPECTOR");
+        titleTv.setTextColor(tm.colorTextPrimary);
+        titleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         titleTv.setTypeface(Typeface.DEFAULT_BOLD);
         titleCol.addView(titleTv);
 
         TextView subTv = new TextView(this);
-        subTv.setText("Deep Hardware & Secret Specs");
+        subTv.setText("Аппаратная диагностика системы");
         subTv.setTextColor(tm.colorTextSecondary);
         subTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         titleCol.addView(subTv);
@@ -137,7 +137,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         header.addView(titleCol, titleLp);
 
         // Export Button
-        Button exportBtn = UiBuilder.createButton(this, "Отчёт", 0x2258A6FF, tm.colorAccent, v -> {
+        Button exportBtn = UiBuilder.createButton(this, "Отчёт", tm.colorButtonInactive, tm.colorTextPrimary, v -> {
             String report = ReportExporter.generateFullReport(this, ThemeManager.getTempUnit(this), ThemeManager.getFreqUnit(this));
             ReportExporter.shareReport(this, report);
         });
@@ -146,7 +146,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         header.addView(exportBtn, exportLp);
 
         // Refresh Button
-        Button refreshBtn = UiBuilder.createButton(this, "🔄", 0x2258A6FF, tm.colorAccent, v -> {
+        Button refreshBtn = UiBuilder.createButton(this, "Обновить", tm.colorButtonInactive, tm.colorTextPrimary, v -> {
             refreshCurrentTab();
             Toast.makeText(this, "Данные обновлены", Toast.LENGTH_SHORT).show();
         });
@@ -154,11 +154,17 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         rootLayout.addView(header);
 
+        // Divider under header
+        View headerDivider = new View(this);
+        headerDivider.setBackgroundColor(tm.colorCardBorder);
+        LinearLayout.LayoutParams hdLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, UiBuilder.dp(this, 1));
+        rootLayout.addView(headerDivider, hdLp);
+
         // 2. Horizontal Tab Bar
         HorizontalScrollView tabScroll = new HorizontalScrollView(this);
         tabScroll.setHorizontalScrollBarEnabled(false);
         tabScroll.setBackgroundColor(tm.colorCardBg);
-        tabScroll.setPadding(UiBuilder.dp(this, 8), UiBuilder.dp(this, 4), UiBuilder.dp(this, 8), UiBuilder.dp(this, 6));
+        tabScroll.setPadding(UiBuilder.dp(this, 8), UiBuilder.dp(this, 6), UiBuilder.dp(this, 8), UiBuilder.dp(this, 6));
 
         tabContainer = new LinearLayout(this);
         tabContainer.setOrientation(LinearLayout.HORIZONTAL);
@@ -168,14 +174,14 @@ public class MainActivity extends Activity implements SensorEventListener {
             final int index = i;
             TextView tabTv = new TextView(this);
             tabTv.setText(TABS[i]);
-            tabTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+            tabTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             tabTv.setTypeface(Typeface.DEFAULT_BOLD);
             int padX = UiBuilder.dp(this, 12);
-            int padY = UiBuilder.dp(this, 7);
+            int padY = UiBuilder.dp(this, 6);
             tabTv.setPadding(padX, padY, padX, padY);
 
             LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            tlp.setMargins(UiBuilder.dp(this, 4), 0, UiBuilder.dp(this, 4), 0);
+            tlp.setMargins(UiBuilder.dp(this, 3), 0, UiBuilder.dp(this, 3), 0);
             tabTv.setLayoutParams(tlp);
 
             tabTv.setOnClickListener(v -> selectTab(index));
@@ -183,6 +189,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
 
         rootLayout.addView(tabScroll);
+
+        // Divider under tab bar
+        View tabDivider = new View(this);
+        tabDivider.setBackgroundColor(tm.colorCardBorder);
+        rootLayout.addView(tabDivider, hdLp);
 
         // 3. Scrollable Content Container
         scrollView = new ScrollView(this);
@@ -207,15 +218,15 @@ public class MainActivity extends Activity implements SensorEventListener {
             activeSensor = null;
         }
 
-        // Highlight selected tab
+        // Highlight selected tab in monochrome style
         for (int i = 0; i < tabContainer.getChildCount(); i++) {
             TextView t = (TextView) tabContainer.getChildAt(i);
             if (i == index) {
                 GradientDrawable activeBg = new GradientDrawable();
-                activeBg.setColor(tm.colorAccent);
-                activeBg.setCornerRadius(UiBuilder.dp(this, 8));
+                activeBg.setColor(0xFFFFFFFF);
+                activeBg.setCornerRadius(UiBuilder.dp(this, 6));
                 t.setBackground(activeBg);
-                t.setTextColor(tm.colorBackground == 0xFF000000 ? 0xFF000000 : 0xFFFFFFFF);
+                t.setTextColor(0xFF000000);
             } else {
                 t.setBackground(null);
                 t.setTextColor(tm.colorTextSecondary);
@@ -243,34 +254,34 @@ public class MainActivity extends Activity implements SensorEventListener {
                 renderSection("Общий обзор системы", OverviewCollector.collect(this));
                 break;
             case 1:
-                renderSection("Процессор & Вычислительные ядра", CpuCollector.collect(freqUnit));
+                renderSection("Центральный процессор и ядра", CpuCollector.collect(freqUnit));
                 break;
             case 2:
-                renderSection("Оперативная память и Накопители", MemoryCollector.collect(this));
+                renderSection("Оперативная память и накопители", MemoryCollector.collect(this));
                 break;
             case 3:
-                renderSection("Аккумулятор & Система питания", BatteryCollector.collect(this, tempUnit));
+                renderSection("Аккумулятор и подсистема питания", BatteryCollector.collect(this, tempUnit));
                 break;
             case 4:
-                renderSection("Экран, Разрешение & Графика", DisplayCollector.collect(this));
+                renderSection("Дисплей и графический ускоритель", DisplayCollector.collect(this));
                 break;
             case 5:
-                renderSection("Сетевые подключения & Связь", NetworkCollector.collect(this));
+                renderSection("Сетевые интерфейсы и связь", NetworkCollector.collect(this));
                 break;
             case 6:
                 renderSensorsTab();
                 break;
             case 7:
-                renderSection("Аппаратные модули камер", CameraCollector.collect(this));
+                renderSection("Модули камер", CameraCollector.collect(this));
                 break;
             case 8:
-                renderSection("Термальные зоны & Нагрев", ThermalCollector.collect(this, tempUnit));
+                renderSection("Температурные зоны", ThermalCollector.collect(this, tempUnit));
                 break;
             case 9:
-                renderSection("Мультимедиа кодеки & Widevine DRM", CodecsDrmCollector.collect());
+                renderSection("Мультимедиа кодеки и DRM", CodecsDrmCollector.collect());
                 break;
             case 10:
-                renderSection("Скрытые & Недокументированные функции", HiddenFeaturesCollector.collect(this));
+                renderSection("Низкоуровневые и скрытые параметры", HiddenFeaturesCollector.collect(this));
                 break;
             case 11:
                 renderPropsTab();
@@ -301,20 +312,20 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     private void renderSensorsTab() {
-        contentContainer.addView(UiBuilder.createSectionHeader(this, "Аппаратные датчики и Live монитор", tm));
+        contentContainer.addView(UiBuilder.createSectionHeader(this, "Аппаратные датчики", tm));
 
         // Live Sensor Card
         LinearLayout liveCard = UiBuilder.createCard(this, tm);
         TextView liveTitle = new TextView(this);
-        liveTitle.setText("Интерактивный Live-монитор датчика");
-        liveTitle.setTextColor(tm.colorAccent);
-        liveTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        liveTitle.setText("Мониторинг значений датчика в реальном времени");
+        liveTitle.setTextColor(tm.colorTextPrimary);
+        liveTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         liveTitle.setTypeface(Typeface.DEFAULT_BOLD);
         liveCard.addView(liveTitle);
 
         List<Sensor> allSensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
         List<String> sensorNames = new ArrayList<>();
-        sensorNames.add("Выберите датчик для живого мониторинга...");
+        sensorNames.add("Выберите датчик для отображения координат...");
         for (Sensor s : allSensors) {
             sensorNames.add(s.getName() + " (" + SensorCollector.getSensorTypeName(s.getType()) + ")");
         }
@@ -325,7 +336,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         spinner.setBackgroundColor(tm.colorCardBg);
 
         liveSensorValuesTv = new TextView(this);
-        liveSensorValuesTv.setText("Выберите сенсор выше для отображения данных в реальном времени.");
+        liveSensorValuesTv.setText("Выберите сенсор выше для отображения данных.");
         liveSensorValuesTv.setTextColor(tm.colorTextPrimary);
         liveSensorValuesTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         liveSensorValuesTv.setPadding(0, UiBuilder.dp(this, 8), 0, 0);
@@ -353,11 +364,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         contentContainer.addView(liveCard);
 
         // List all sensors
-        renderSection("Полный список сенсоров", SensorCollector.collect(this));
+        renderSection("Список установленных датчиков", SensorCollector.collect(this));
     }
 
     private void renderPropsTab() {
-        contentContainer.addView(UiBuilder.createSectionHeader(this, "Все системные свойства (getprop)", tm));
+        contentContainer.addView(UiBuilder.createSectionHeader(this, "Свойства системы (getprop)", tm));
 
         // Search Box
         EditText searchEt = UiBuilder.createSearchBox(this, "Поиск по ключу или значению...", tm);
@@ -377,7 +388,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         });
         contentContainer.addView(searchEt);
 
-        // Category filter chips
+        // Category filter chips in monochrome
         HorizontalScrollView chipScroll = new HorizontalScrollView(this);
         chipScroll.setHorizontalScrollBarEnabled(false);
         LinearLayout chipContainer = new LinearLayout(this);
@@ -396,14 +407,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 
             GradientDrawable cd = new GradientDrawable();
             boolean isSelected = cat.equals(propsCategory);
-            cd.setColor(isSelected ? tm.colorAccent : tm.colorCardBg);
-            cd.setCornerRadius(UiBuilder.dp(this, 8));
-            cd.setStroke(UiBuilder.dp(this, 1), tm.colorCardBorder);
+            cd.setColor(isSelected ? 0xFFFFFFFF : tm.colorButtonInactive);
+            cd.setCornerRadius(UiBuilder.dp(this, 6));
+            cd.setStroke(UiBuilder.dp(this, 1), isSelected ? 0xFFFFFFFF : tm.colorCardBorder);
             chip.setBackground(cd);
-            chip.setTextColor(isSelected ? (tm.colorBackground == 0xFF000000 ? 0xFF000000 : 0xFFFFFFFF) : tm.colorTextPrimary);
+            chip.setTextColor(isSelected ? 0xFF000000 : tm.colorTextPrimary);
 
             LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            clp.setMargins(0, 0, UiBuilder.dp(this, 8), UiBuilder.dp(this, 10));
+            clp.setMargins(0, 0, UiBuilder.dp(this, 6), UiBuilder.dp(this, 10));
             chip.setLayoutParams(clp);
 
             chip.setOnClickListener(v -> {
@@ -424,7 +435,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         contentContainer.addView(countTv);
 
         LinearLayout card = UiBuilder.createCard(this, tm);
-        int maxShow = Math.min(items.size(), 150); // Show up to 150 matching properties
+        int maxShow = Math.min(items.size(), 150);
         for (int i = 0; i < maxShow; i++) {
             card.addView(UiBuilder.createItemRow(this, items.get(i), tm));
             if (i < maxShow - 1) {
@@ -438,8 +449,8 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         if (items.size() > maxShow) {
             TextView moreTv = new TextView(this);
-            moreTv.setText("... ещё " + (items.size() - maxShow) + " свойств (уточните поиск)");
-            moreTv.setTextColor(tm.colorAccent);
+            moreTv.setText("... ещё " + (items.size() - maxShow) + " свойств (уточните запрос)");
+            moreTv.setTextColor(tm.colorTextSecondary);
             moreTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             moreTv.setPadding(0, UiBuilder.dp(this, 8), 0, 0);
             card.addView(moreTv);
@@ -454,14 +465,15 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     private void renderSettingsTab() {
-        contentContainer.addView(UiBuilder.createSectionHeader(this, "Настройки приложения & Экспорт", tm));
+        contentContainer.addView(UiBuilder.createSectionHeader(this, "Параметры и экспорт", tm));
 
         LinearLayout card = UiBuilder.createCard(this, tm);
 
         // 1. Theme Selector
         TextView themeLabel = new TextView(this);
-        themeLabel.setText("Тема интерфейса:");
+        themeLabel.setText("Стиль оформления:");
         themeLabel.setTextColor(tm.colorTextPrimary);
+        themeLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         themeLabel.setTypeface(Typeface.DEFAULT_BOLD);
         card.addView(themeLabel);
 
@@ -469,10 +481,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         themeRow.setOrientation(LinearLayout.HORIZONTAL);
         themeRow.setPadding(0, UiBuilder.dp(this, 6), 0, UiBuilder.dp(this, 14));
 
-        String[] themeNames = {"Cyber Dark", "AMOLED Black", "Slate Night"};
+        String[] themeNames = {"Чёрный", "Графит", "Сталь"};
         for (int i = 0; i < 3; i++) {
             final int tid = i;
-            Button tb = UiBuilder.createButton(this, themeNames[i], (tm.themeId == tid) ? tm.colorAccent : tm.colorCardBorder, (tm.themeId == tid) ? (tm.colorBackground == 0xFF000000 ? 0xFF000000 : 0xFFFFFFFF) : tm.colorTextPrimary, v -> {
+            boolean isSel = (tm.themeId == tid);
+            Button tb = UiBuilder.createButton(this, themeNames[i], isSel ? 0xFFFFFFFF : tm.colorButtonInactive, isSel ? 0xFF000000 : tm.colorTextPrimary, v -> {
                 ThemeManager.setTheme(this, tid);
                 tm = new ThemeManager(tid);
                 recreate();
@@ -485,8 +498,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         // 2. Temperature Unit
         TextView tempLabel = new TextView(this);
-        tempLabel.setText("Единицы температуры:");
+        tempLabel.setText("Единицы измерения температуры:");
         tempLabel.setTextColor(tm.colorTextPrimary);
+        tempLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         tempLabel.setTypeface(Typeface.DEFAULT_BOLD);
         card.addView(tempLabel);
 
@@ -495,11 +509,12 @@ public class MainActivity extends Activity implements SensorEventListener {
         tempRow.setPadding(0, UiBuilder.dp(this, 6), 0, UiBuilder.dp(this, 14));
 
         String curTemp = ThemeManager.getTempUnit(this);
-        Button btnC = UiBuilder.createButton(this, "Цельсий (°C)", "C".equals(curTemp) ? tm.colorAccent : tm.colorCardBorder, "C".equals(curTemp) ? 0xFFFFFFFF : tm.colorTextPrimary, v -> {
+        boolean isC = "C".equals(curTemp);
+        Button btnC = UiBuilder.createButton(this, "Цельсий (°C)", isC ? 0xFFFFFFFF : tm.colorButtonInactive, isC ? 0xFF000000 : tm.colorTextPrimary, v -> {
             ThemeManager.setTempUnit(this, "C");
             renderContent();
         });
-        Button btnF = UiBuilder.createButton(this, "Фаренгейт (°F)", "F".equals(curTemp) ? tm.colorAccent : tm.colorCardBorder, "F".equals(curTemp) ? 0xFFFFFFFF : tm.colorTextPrimary, v -> {
+        Button btnF = UiBuilder.createButton(this, "Фаренгейт (°F)", !isC ? 0xFFFFFFFF : tm.colorButtonInactive, !isC ? 0xFF000000 : tm.colorTextPrimary, v -> {
             ThemeManager.setTempUnit(this, "F");
             renderContent();
         });
@@ -515,6 +530,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         TextView freqLabel = new TextView(this);
         freqLabel.setText("Единицы частоты процессора:");
         freqLabel.setTextColor(tm.colorTextPrimary);
+        freqLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         freqLabel.setTypeface(Typeface.DEFAULT_BOLD);
         card.addView(freqLabel);
 
@@ -523,11 +539,12 @@ public class MainActivity extends Activity implements SensorEventListener {
         freqRow.setPadding(0, UiBuilder.dp(this, 6), 0, UiBuilder.dp(this, 14));
 
         String curFreq = ThemeManager.getFreqUnit(this);
-        Button btnMhz = UiBuilder.createButton(this, "МГц (MHz)", "MHz".equals(curFreq) ? tm.colorAccent : tm.colorCardBorder, "MHz".equals(curFreq) ? 0xFFFFFFFF : tm.colorTextPrimary, v -> {
+        boolean isMhz = "MHz".equals(curFreq);
+        Button btnMhz = UiBuilder.createButton(this, "МГц", isMhz ? 0xFFFFFFFF : tm.colorButtonInactive, isMhz ? 0xFF000000 : tm.colorTextPrimary, v -> {
             ThemeManager.setFreqUnit(this, "MHz");
             renderContent();
         });
-        Button btnGhz = UiBuilder.createButton(this, "ГГц (GHz)", "GHz".equals(curFreq) ? tm.colorAccent : tm.colorCardBorder, "GHz".equals(curFreq) ? 0xFFFFFFFF : tm.colorTextPrimary, v -> {
+        Button btnGhz = UiBuilder.createButton(this, "ГГц", !isMhz ? 0xFFFFFFFF : tm.colorButtonInactive, !isMhz ? 0xFF000000 : tm.colorTextPrimary, v -> {
             ThemeManager.setFreqUnit(this, "GHz");
             renderContent();
         });
@@ -537,8 +554,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         // 4. Auto-Refresh Interval
         TextView refreshLabel = new TextView(this);
-        refreshLabel.setText("Интервал авто-обновления графиков:");
+        refreshLabel.setText("Интервал обновления данных:");
         refreshLabel.setTextColor(tm.colorTextPrimary);
+        refreshLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         refreshLabel.setTypeface(Typeface.DEFAULT_BOLD);
         card.addView(refreshLabel);
 
@@ -551,7 +569,8 @@ public class MainActivity extends Activity implements SensorEventListener {
         String[] intervalLabels = {"1 сек", "2 сек", "5 сек", "Выкл"};
         for (int i = 0; i < 4; i++) {
             final int iv = intervals[i];
-            Button b = UiBuilder.createButton(this, intervalLabels[i], curInterval == iv ? tm.colorAccent : tm.colorCardBorder, curInterval == iv ? 0xFFFFFFFF : tm.colorTextPrimary, v -> {
+            boolean isSel = (curInterval == iv);
+            Button b = UiBuilder.createButton(this, intervalLabels[i], isSel ? 0xFFFFFFFF : tm.colorButtonInactive, isSel ? 0xFF000000 : tm.colorTextPrimary, v -> {
                 ThemeManager.setRefreshInterval(this, iv);
                 setupAutoRefresh();
                 renderContent();
@@ -566,10 +585,10 @@ public class MainActivity extends Activity implements SensorEventListener {
         LinearLayout deepRow = new LinearLayout(this);
         deepRow.setOrientation(LinearLayout.HORIZONTAL);
         deepRow.setGravity(Gravity.CENTER_VERTICAL);
-        deepRow.setPadding(0, 0, 0, UiBuilder.dp(this, 14));
+        deepRow.setPadding(0, 0, 0, UiBuilder.dp(this, 8));
 
         TextView deepTv = new TextView(this);
-        deepTv.setText("Глубокий анализ скрытых сервисов и рефлексии");
+        deepTv.setText("Глубокий анализ системных сервисов (IPC)");
         deepTv.setTextColor(tm.colorTextPrimary);
         deepTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         LinearLayout.LayoutParams dLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
@@ -589,20 +608,20 @@ public class MainActivity extends Activity implements SensorEventListener {
         // 6. Export Actions Card
         LinearLayout exportCard = UiBuilder.createCard(this, tm);
         TextView expTitle = new TextView(this);
-        expTitle.setText("Экспорт полного аудита устройства");
-        expTitle.setTextColor(tm.colorAccent);
-        expTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        expTitle.setText("Экспорт аудита системы");
+        expTitle.setTextColor(tm.colorTextPrimary);
+        expTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         expTitle.setTypeface(Typeface.DEFAULT_BOLD);
         exportCard.addView(expTitle);
 
         TextView expDesc = new TextView(this);
-        expDesc.setText("Генерирует исчерпывающий отчёт со всеми характеристиками, скрытыми свойствами и параметрами оборудования.");
+        expDesc.setText("Формирует текстовый отчёт со всеми характеристиками оборудования и системными параметрами.");
         expDesc.setTextColor(tm.colorTextSecondary);
         expDesc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         expDesc.setPadding(0, UiBuilder.dp(this, 4), 0, UiBuilder.dp(this, 12));
         exportCard.addView(expDesc);
 
-        Button copyReportBtn = UiBuilder.createButton(this, "📋 Скопировать отчёт в буфер обмена", tm.colorAccent, tm.colorBackground == 0xFF000000 ? 0xFF000000 : 0xFFFFFFFF, v -> {
+        Button copyReportBtn = UiBuilder.createButton(this, "Скопировать отчёт в буфер", 0xFFFFFFFF, 0xFF000000, v -> {
             String rep = ReportExporter.generateFullReport(this, ThemeManager.getTempUnit(this), ThemeManager.getFreqUnit(this));
             ReportExporter.copyToClipboard(this, rep);
         });
@@ -610,7 +629,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         crLp.setMargins(0, 0, 0, UiBuilder.dp(this, 8));
         exportCard.addView(copyReportBtn, crLp);
 
-        Button shareReportBtn = UiBuilder.createButton(this, "📤 Поделиться отчётом (Telegram / Заметки)", 0x2258A6FF, tm.colorAccent, v -> {
+        Button shareReportBtn = UiBuilder.createButton(this, "Поделиться отчётом", tm.colorButtonInactive, tm.colorTextPrimary, v -> {
             String rep = ReportExporter.generateFullReport(this, ThemeManager.getTempUnit(this), ThemeManager.getFreqUnit(this));
             ReportExporter.shareReport(this, rep);
         });
@@ -621,21 +640,22 @@ public class MainActivity extends Activity implements SensorEventListener {
         // 7. About App Card
         LinearLayout aboutCard = UiBuilder.createCard(this, tm);
         TextView aboutTitle = new TextView(this);
-        aboutTitle.setText("О приложении DevInspector Ultra");
-        aboutTitle.setTextColor(tm.colorAccent);
-        aboutTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        aboutTitle.setText("О программе");
+        aboutTitle.setTextColor(tm.colorTextPrimary);
+        aboutTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         aboutTitle.setTypeface(Typeface.DEFAULT_BOLD);
         aboutCard.addView(aboutTitle);
 
         String info =
-                "• Версия: 1.0.0 Pro Deep\n" +
-                "• Компактный размер: < 150 КБ (без раздутых библиотек)\n" +
-                "• Прямой доступ: чтение ядра Linux (/proc, /sys), системных свойств getprop и закрытых IPC сервисов\n" +
-                "• Полная конфиденциальность: не требует интернета, не собирает аналитику\n" +
-                "• Лицензия: MIT Open Source";
+                "• DevInspector Ultra 1.0.0\n" +
+                "• Прямой доступ к ядру Linux (/proc, /sys)\n" +
+                "• Дамп системных свойств getprop\n" +
+                "• Анализ сервисов через ServiceManager Binder\n" +
+                "• Автономная работа без интернет-соединения\n" +
+                "• Лицензия: MIT";
         TextView infoTv = new TextView(this);
         infoTv.setText(info);
-        infoTv.setTextColor(tm.colorTextPrimary);
+        infoTv.setTextColor(tm.colorTextSecondary);
         infoTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         infoTv.setPadding(0, UiBuilder.dp(this, 6), 0, 0);
         aboutCard.addView(infoTv);

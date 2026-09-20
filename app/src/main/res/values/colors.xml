@@ -1,26 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Cyber Dark Palette -->
-    <color name="bg_cyber">#0B0F14</color>
-    <color name="card_cyber">#151B23</color>
-    <color name="card_border_cyber">#212B36</color>
-    <color name="accent_blue">#58A6FF</color>
-    <color name="accent_green">#3FB950</color>
-    <color name="accent_amber">#D29922</color>
-    <color name="accent_red">#F85149</color>
-    <color name="accent_purple">#BC8CFF</color>
-    <color name="accent_cyan">#39C5BB</color>
-    <color name="text_primary">#E6EDF3</color>
-    <color name="text_secondary">#8B949E</color>
-    <color name="text_muted">#6E7681</color>
-
-    <!-- AMOLED Palette -->
-    <color name="bg_amoled">#000000</color>
-    <color name="card_amoled">#0D0D0D</color>
-    <color name="card_border_amoled">#1F1F1F</color>
-
-    <!-- Slate Palette -->
-    <color name="bg_slate">#181825</color>
-    <color name="card_slate">#1E1E2E</color>
-    <color name="card_border_slate">#313244</color>
+    <!-- Monochrome Palette: Black, White, Gray -->
+    <color name="mono_black">#000000</color>
+    <color name="mono_dark_1">#0D0D0D</color>
+    <color name="mono_dark_2">#141414</color>
+    <color name="mono_dark_3">#1C1C1C</color>
+    <color name="mono_border">#2E2E2E</color>
+    <color name="mono_border_subtle">#222222</color>
+    <color name="mono_border_bright">#4A4A4A</color>
+    
+    <color name="mono_white">#FFFFFF</color>
+    <color name="mono_light_gray">#E0E0E0</color>
+    <color name="mono_mid_gray">#9E9E9E</color>
+    <color name="mono_dark_gray">#616161</color>
+    
+    <!-- Semantic mappings -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#9E9E9E</color>
+    <color name="text_muted">#616161</color>
 </resources>

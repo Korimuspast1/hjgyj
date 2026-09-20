@@ -5,9 +5,9 @@ import android.content.SharedPreferences;
 
 public class ThemeManager {
 
-    public static final int THEME_CYBER = 0;
-    public static final int THEME_AMOLED = 1;
-    public static final int THEME_SLATE = 2;
+    public static final int THEME_MONO_BLACK = 0;
+    public static final int THEME_MONO_GRAPHITE = 1;
+    public static final int THEME_MONO_STEEL = 2;
 
     private static final String PREF_NAME = "dev_inspector_settings";
     private static final String KEY_THEME = "theme_id";
@@ -20,56 +20,64 @@ public class ThemeManager {
     public final int colorBackground;
     public final int colorCardBg;
     public final int colorCardBorder;
+    public final int colorCardBorderBright;
     public final int colorTextPrimary;
     public final int colorTextSecondary;
+    public final int colorTextMuted;
     public final int colorAccent;
-    public final int colorSuccess;
-    public final int colorWarning;
-    public final int colorDanger;
+    public final int colorButtonInactive;
+    public final int colorBadgeBg;
+    public final int colorBadgeText;
 
     public ThemeManager(int themeId) {
         this.themeId = themeId;
         switch (themeId) {
-            case THEME_AMOLED:
+            case THEME_MONO_GRAPHITE:
+                colorBackground = 0xFF121212;
+                colorCardBg = 0xFF1E1E1E;
+                colorCardBorder = 0xFF2E2E2E;
+                colorCardBorderBright = 0xFF505050;
+                colorTextPrimary = 0xFFFFFFFF;
+                colorTextSecondary = 0xFFA0A0A0;
+                colorTextMuted = 0xFF666666;
+                colorAccent = 0xFFFFFFFF;
+                colorButtonInactive = 0xFF2A2A2A;
+                colorBadgeBg = 0xFF2A2A2A;
+                colorBadgeText = 0xFFEEEEEE;
+                break;
+            case THEME_MONO_STEEL:
+                colorBackground = 0xFF1A1A1E;
+                colorCardBg = 0xFF25252A;
+                colorCardBorder = 0xFF383842;
+                colorCardBorderBright = 0xFF585864;
+                colorTextPrimary = 0xFFF5F5F7;
+                colorTextSecondary = 0xFFA5A5B0;
+                colorTextMuted = 0xFF6C6C75;
+                colorAccent = 0xFFFFFFFF;
+                colorButtonInactive = 0xFF303036;
+                colorBadgeBg = 0xFF32323A;
+                colorBadgeText = 0xFFFFFFFF;
+                break;
+            case THEME_MONO_BLACK:
+            default:
                 colorBackground = 0xFF000000;
-                colorCardBg = 0xFF0D0D0D;
-                colorCardBorder = 0xFF1F1F1F;
+                colorCardBg = 0xFF111111;
+                colorCardBorder = 0xFF242424;
+                colorCardBorderBright = 0xFF444444;
                 colorTextPrimary = 0xFFFFFFFF;
                 colorTextSecondary = 0xFF9E9E9E;
-                colorAccent = 0xFF00E5FF;
-                colorSuccess = 0xFF00E676;
-                colorWarning = 0xFFFFD600;
-                colorDanger = 0xFFFF1744;
-                break;
-            case THEME_SLATE:
-                colorBackground = 0xFF181825;
-                colorCardBg = 0xFF1E1E2E;
-                colorCardBorder = 0xFF313244;
-                colorTextPrimary = 0xFFCDD6F4;
-                colorTextSecondary = 0xFFA6ADC8;
-                colorAccent = 0xFFCBA6F7;
-                colorSuccess = 0xFFA6E3A1;
-                colorWarning = 0xFFF9E2AF;
-                colorDanger = 0xFFF38BA8;
-                break;
-            case THEME_CYBER:
-            default:
-                colorBackground = 0xFF0B0F14;
-                colorCardBg = 0xFF151B23;
-                colorCardBorder = 0xFF212B36;
-                colorTextPrimary = 0xFFE6EDF3;
-                colorTextSecondary = 0xFF8B949E;
-                colorAccent = 0xFF58A6FF;
-                colorSuccess = 0xFF3FB950;
-                colorWarning = 0xFFD29922;
-                colorDanger = 0xFFF85149;
+                colorTextMuted = 0xFF555555;
+                colorAccent = 0xFFFFFFFF;
+                colorButtonInactive = 0xFF202020;
+                colorBadgeBg = 0xFF222222;
+                colorBadgeText = 0xFFE0E0E0;
                 break;
         }
     }
 
     public static ThemeManager get(Context context) {
         SharedPreferences sp = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        int tid = sp.getInt(KEY_THEME, THEME_CYBER);
+        int tid = sp.getInt(KEY_THEME, THEME_MONO_BLACK);
         return new ThemeManager(tid);
     }
 
