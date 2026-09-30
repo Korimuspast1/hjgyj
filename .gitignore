@@ -1,0 +1,22 @@
+# build tools & keystores (fetched via android/fetch-tools.sh, never committed)
+android/tools/
+android/build/
+
+# local databases
+server/*.db
+server/*.db-journal
+server/*.db-wal
+server/*.db-shm
+
+# node
+node_modules/
+tests/node_modules/
+
+# build output lives in git via dist/, but keep intermediates out
+*.o
+*.tmp
+.DS_Store
+
+# python
+__pycache__/
+*.pyc

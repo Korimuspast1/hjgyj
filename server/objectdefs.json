@@ -1,0 +1,344 @@
+{
+  "generatedAt": "2026-09-30T13:33:18.509Z",
+  "LEVEL_HEIGHT": 14,
+  "MAX_X": 100000,
+  "MAX_Y": 13,
+  "defs": [
+    {
+      "id": 1,
+      "key": "block_basic",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 2,
+      "key": "block_brick",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 3,
+      "key": "block_metal",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 4,
+      "key": "block_glass",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 5,
+      "key": "block_glow",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 6,
+      "key": "block_checker",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 7,
+      "key": "block_stone",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 8,
+      "key": "block_circuit",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 9,
+      "key": "block_ice",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 10,
+      "key": "block_half",
+      "w": 1,
+      "h": 0.5
+    },
+    {
+      "id": 12,
+      "key": "platform_tiny",
+      "w": 1,
+      "h": 0.3
+    },
+    {
+      "id": 13,
+      "key": "platform_short",
+      "w": 2,
+      "h": 0.3
+    },
+    {
+      "id": 14,
+      "key": "platform_long",
+      "w": 4,
+      "h": 0.3
+    },
+    {
+      "id": 20,
+      "key": "spike",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 21,
+      "key": "spike_small",
+      "w": 1,
+      "h": 0.5
+    },
+    {
+      "id": 22,
+      "key": "spike_mini",
+      "w": 0.6,
+      "h": 0.35
+    },
+    {
+      "id": 23,
+      "key": "spike_pair",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 24,
+      "key": "spike_needle",
+      "w": 0.5,
+      "h": 1
+    },
+    {
+      "id": 25,
+      "key": "spike_ball",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 28,
+      "key": "saw_small",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 29,
+      "key": "saw_medium",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 30,
+      "key": "saw_big",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 31,
+      "key": "mine",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 32,
+      "key": "moving_spike",
+      "w": 1,
+      "h": 0.5
+    },
+    {
+      "id": 33,
+      "key": "moving_saw",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 34,
+      "key": "moving_mine",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 40,
+      "key": "portal_grav_up",
+      "w": 1,
+      "h": 3
+    },
+    {
+      "id": 41,
+      "key": "portal_grav_down",
+      "w": 1,
+      "h": 3
+    },
+    {
+      "id": 42,
+      "key": "portal_speed_05",
+      "w": 1,
+      "h": 3
+    },
+    {
+      "id": 43,
+      "key": "portal_speed_1",
+      "w": 1,
+      "h": 3
+    },
+    {
+      "id": 44,
+      "key": "portal_speed_2",
+      "w": 1,
+      "h": 3
+    },
+    {
+      "id": 45,
+      "key": "portal_speed_3",
+      "w": 1,
+      "h": 3
+    },
+    {
+      "id": 46,
+      "key": "portal_speed_4",
+      "w": 1,
+      "h": 3
+    },
+    {
+      "id": 50,
+      "key": "pad_yellow",
+      "w": 1,
+      "h": 0.35
+    },
+    {
+      "id": 51,
+      "key": "pad_pink",
+      "w": 1,
+      "h": 0.35
+    },
+    {
+      "id": 52,
+      "key": "pad_blue",
+      "w": 1,
+      "h": 0.35
+    },
+    {
+      "id": 55,
+      "key": "orb_yellow",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 56,
+      "key": "orb_pink",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 57,
+      "key": "orb_blue",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 58,
+      "key": "orb_green",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 60,
+      "key": "deco_arrow",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 61,
+      "key": "deco_chain",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 62,
+      "key": "deco_dot",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 63,
+      "key": "deco_ring",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 64,
+      "key": "deco_diamond",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 65,
+      "key": "deco_star",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 66,
+      "key": "deco_cross",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 67,
+      "key": "deco_bgspikes",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 68,
+      "key": "deco_grass",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 69,
+      "key": "deco_building",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 70,
+      "key": "deco_planet",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 71,
+      "key": "deco_box",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 72,
+      "key": "deco_beam",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 73,
+      "key": "deco_wave",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 74,
+      "key": "deco_tri",
+      "w": 1,
+      "h": 1
+    },
+    {
+      "id": 75,
+      "key": "deco_pulse",
+      "w": 1,
+      "h": 1
+    }
+  ]
+}

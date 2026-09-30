@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neon Dash — Online Levels & Stats</title>
+<meta name="description" content="Browse community levels, leaderboards and global stats for Neon Dash — a Geometry Dash-inspired rhythm platformer.">
+<link rel="stylesheet" href="/play/css/font.css">
+<style>
+  :root {
+    --bg0: #071026;
+    --bg1: #0c2a55;
+    --cyan: #00e5ff;
+    --green: #4dd964;
+    --pink: #ff3355;
+    --gold: #ffd94a;
+    --text: #eaf6ff;
+    --card: rgba(9, 30, 66, 0.72);
+    --stroke: rgba(0, 229, 255, 0.25);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: TitanOne, 'Arial Black', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 500px at 70% -10%, rgba(0, 229, 255, 0.18), transparent 60%),
+      radial-gradient(900px 420px at 10% 110%, rgba(255, 51, 85, 0.14), transparent 60%),
+      linear-gradient(180deg, var(--bg1) 0%, var(--bg0) 55%, #04070f 100%);
+    padding: 0 0 60px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  header { text-align: center; padding: 54px 20px 26px; }
+  .logo { font-size: clamp(40px, 8vw, 72px); letter-spacing: 2px; line-height: 1; }
+  .logo .neon { color: var(--cyan); text-shadow: 0 0 18px rgba(0,229,255,.8), 0 4px 0 #0a2a4a; }
+  .logo .dash { color: var(--gold); text-shadow: 0 0 18px rgba(255,217,74,.7), 0 4px 0 #4a3a0a; }
+  .tagline {
+    margin-top: 14px; font-family: 'Segoe UI', system-ui, sans-serif;
+    font-weight: 600; color: #bfe6ff; font-size: 15px;
+  }
+  .play-cta {
+    display: inline-block; margin-top: 22px;
+    font-size: 20px; color: #06240e; text-decoration: none;
+    background: linear-gradient(180deg, #8dff9b, #35c14d 55%, #1f9a37);
+    border: 3px solid #0e5c22; border-radius: 16px; padding: 14px 38px;
+    box-shadow: 0 6px 0 #0e5c22, 0 10px 24px rgba(0,0,0,.45);
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .play-cta:active { transform: translateY(4px); box-shadow: 0 2px 0 #0e5c22; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px; margin: 26px 0 34px;
+  }
+  .stat {
+    background: var(--card); border: 2px solid var(--stroke); border-radius: 16px;
+    padding: 16px 12px; text-align: center;
+  }
+  .stat b { display: block; font-size: 30px; color: var(--cyan); text-shadow: 0 0 14px rgba(0,229,255,.55); }
+  .stat span { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 12px; font-weight: 700; color: #9fc9e8; letter-spacing: .12em; text-transform: uppercase; }
+
+  h2 {
+    font-size: 22px; margin: 34px 0 14px; color: #fff;
+    text-shadow: 0 3px 0 rgba(0,0,0,.4);
+  }
+  h2 .chip {
+    font-family: 'Segoe UI', system-ui, sans-serif; font-size: 12px; font-weight: 700;
+    background: rgba(0,229,255,.12); border: 1px solid var(--stroke);
+    border-radius: 99px; padding: 4px 12px; vertical-align: middle; margin-left: 10px;
+    color: #9fc9e8;
+  }
+
+  .board { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .row {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--card); border: 2px solid var(--stroke); border-radius: 16px;
+    padding: 12px 16px;
+  }
+  .row .rank {
+    font-size: 20px; color: var(--gold); width: 44px; flex: none; text-align: center;
+    text-shadow: 0 0 12px rgba(255,217,74,.5);
+  }
+  .row:nth-child(1) .rank { font-size: 24px; }
+  .row .who { flex: 1; min-width: 0; }
+  .row .name { font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .by { font-family: 'Segoe UI', system-ui, sans-serif; font-weight: 600; font-size: 12px; color: #9fc9e8; margin-top: 2px; }
+  .row .num { font-family: 'Segoe UI', system-ui, sans-serif; font-weight: 700; font-size: 13px; color: #cfeaff; text-align: center; flex: none; width: 64px; }
+  .row .num b { display: block; font-size: 16px; color: #fff; }
+  .diff { display: inline-block; font-family: 'Segoe UI', system-ui, sans-serif; font-weight: 800; font-size: 10px; letter-spacing: .08em; border-radius: 6px; padding: 2px 8px; margin-left: 8px; vertical-align: 2px; color: #08111f; }
+
+  footer {
+    margin-top: 50px; text-align: center;
+    font-family: 'Segoe UI', system-ui, sans-serif; font-weight: 600;
+    font-size: 12px; color: #7fa8c9;
+  }
+  footer a { color: var(--cyan); text-decoration: none; }
+
+  .skel { color: #9fc9e8; font-family: 'Segoe UI', system-ui, sans-serif; font-weight: 600; padding: 20px; }
+  .err { color: var(--pink); }
+  @media (max-width: 560px) {
+    .row .num:nth-child(n+4) { display: none; }
+    .row .rank { width: 32px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><span class="neon">NEON</span> <span class="dash">DASH</span></div>
+  <p class="tagline">Community levels, leaderboards &amp; global stats</p>
+  <a class="play-cta" href="/play/">▶ PLAY IN BROWSER</a>
+</header>
+
+<div class="wrap">
+  <section class="stats" id="stats">
+    <div class="stat"><b>–</b><span>Levels</span></div>
+    <div class="stat"><b>–</b><span>Plays</span></div>
+    <div class="stat"><b>–</b><span>Likes</span></div>
+    <div class="stat"><b>–</b><span>Downloads</span></div>
+    <div class="stat"><b>–</b><span>Completions</span></div>
+  </section>
+
+  <h2>TOP LEVELS <span class="chip">by likes</span></h2>
+  <ul class="board" id="top"><li class="skel">Loading…</li></ul>
+
+  <h2>FRESH UPLOADS <span class="chip">newest first</span></h2>
+  <ul class="board" id="recent"><li class="skel">Loading…</li></ul>
+
+  <footer>
+    Neon Dash — a Geometry Dash-inspired rhythm platformer.
+    <a href="/play/">Play in the browser</a> or grab the Android APK.
+    API: <a href="/api/stats">/api/stats</a> · <a href="/api/levels">/api/levels</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var DIFFS = [
+    { name: 'EASY', color: '#4dd964' }, { name: 'NORMAL', color: '#45c6ff' },
+    { name: 'HARD', color: '#ffcc33' }, { name: 'HARDER', color: '#ff7733' },
+    { name: 'INSANE', color: '#ff3355' }
+  ];
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmt(n) {
+    n = Number(n) || 0;
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+    return String(n);
+  }
+  function rowHtml(rank, l) {
+    var d = DIFFS[l.difficulty] || DIFFS[1];
+    var s = l.stats || {};
+    return '<li class="row">' +
+      '<span class="rank">' + (rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank) + '</span>' +
+      '<span class="who">' +
+        '<span class="name">' + esc(l.name) + '<span class="diff" style="background:' + d.color + '">' + d.name + '</span></span>' +
+        '<span class="by">by ' + esc(l.author) + (l.official ? ' · official' : '') + '</span>' +
+      '</span>' +
+      '<span class="num"><b>' + fmt(s.likes || 0) + '</b>♥</span>' +
+      '<span class="num"><b>' + fmt(s.downloads || 0) + '</b>⬇</span>' +
+      '<span class="num"><b>' + fmt(s.plays || 0) + '</b>▶</span>' +
+      '<span class="num"><b>' + fmt(s.completions || 0) + '</b>🏁</span>' +
+    '</li>';
+  }
+  function load() {
+    fetch('/api/stats').then(function (r) { return r.json(); }).then(function (data) {
+      if (!data.ok) throw new Error('bad stats');
+      var t = data.totals || {};
+      var statsEl = document.getElementById('stats');
+      var values = [t.levels, t.plays, t.likes, t.downloads, t.completions];
+      var cards = statsEl.querySelectorAll('.stat b');
+      for (var i = 0; i < cards.length; i++) cards[i].textContent = fmt(values[i] || 0);
+
+      var top = document.getElementById('top');
+      top.innerHTML = (data.top || []).length
+        ? data.top.map(function (l, i) { return rowHtml(i + 1, l); }).join('')
+        : '<li class="skel">No levels yet — be the first to upload one!</li>';
+
+      var recent = document.getElementById('recent');
+      recent.innerHTML = (data.recent || []).length
+        ? data.recent.map(function (l, i) { return rowHtml(i + 1, l); }).join('')
+        : '<li class="skel">Nothing new yet.</li>';
+    }).catch(function () {
+      document.getElementById('top').innerHTML = '<li class="skel err">Could not reach the API.</li>';
+    });
+  }
+  load();
+  setInterval(load, 30000);
+})();
+</script>
+</body>
+</html>
