@@ -1,0 +1,12 @@
+{
+  "name": "neon-dash-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Unit + UI tests for Neon Dash",
+  "scripts": {
+    "test": "node run-tests.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
+  }
+}

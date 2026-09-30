@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a1e5e">
+  <title>Neon Dash</title>
+  <link rel="stylesheet" href="css/font.css">
+  <link rel="stylesheet" href="css/main.css">
+  <script>
+    // Build-time configuration (may be overridden by the Android shell).
+    window.ND_CONFIG = { serverUrl: '' };
+  </script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="game-canvas"></canvas>
+    <div id="ui-root"></div>
+  </div>
+
+  <!-- Core (order matters: no module system by design — see docs/ARCHITECTURE.md) -->
+  <script src="js/core/namespace.js"></script>
+  <script src="js/core/util.js"></script>
+  <script src="js/core/rng.js"></script>
+  <script src="js/core/i18n.js"></script>
+  <script src="js/core/storage.js"></script>
+  <script src="js/core/objectdefs.js"></script>
+  <script src="js/core/level.js"></script>
+  <script src="js/core/encoding.js"></script>
+  <script src="js/core/collision.js"></script>
+  <script src="js/core/physics.js"></script>
+  <script src="js/core/audio.js"></script>
+  <script src="js/levels/official.js"></script>
+  <script src="js/logic/levelbuild.js"></script>
+  <script src="js/logic/gameplay.js"></script>
+  <script src="js/logic/bot.js"></script>
+  <!-- Rendering -->
+  <script src="js/render/sprites.js"></script>
+  <script src="js/render/background.js"></script>
+  <script src="js/render/playericon.js"></script>
+  <script src="js/render/levelrenderer.js"></script>
+  <!-- UI -->
+  <script src="js/ui/net.js"></script>
+  <script src="js/ui/screens.js"></script>
+  <script src="js/ui/levelselect.js"></script>
+  <script src="js/ui/editor.js"></script>
+  <script src="js/boot.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      GD.app.boot();
+    });
+  </script>
+</body>
+</html>
