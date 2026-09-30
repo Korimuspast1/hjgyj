@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CaseArena — кейсы CS2, кликер и инвентарь</title>
+<meta name="description" content="Симулятор открытия кейсов CS2: зарабатывай кликами, открывай кейсы, выбивай любые скины и продавай их.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='6' width='18' height='15' rx='3' fill='%23ff9f1a'/%3E%3Cpath d='M3 11h18' stroke='%230a0d13' stroke-width='2.4'/%3E%3Crect x='9.5' y='8.5' width='5' height='5' rx='1.4' fill='%230a0d13'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     КУСТОМНЫЙ SVG-СПРАЙТ ИКОНОК (нарисованы вручную для CaseArena)
+     ============================================================ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <defs>
+    <radialGradient id="coinGrad" cx="35%" cy="28%" r="85%">
+      <stop offset="0%" stop-color="#ffeeb0"/>
+      <stop offset="45%" stop-color="#ffc253"/>
+      <stop offset="100%" stop-color="#b35f00"/>
+    </radialGradient>
+    <radialGradient id="coinGradDark" cx="35%" cy="28%" r="85%">
+      <stop offset="0%" stop-color="#c9c9d4"/>
+      <stop offset="45%" stop-color="#7e8698"/>
+      <stop offset="100%" stop-color="#3a4150"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Ящик / кейс -->
+  <symbol id="i-case" viewBox="0 0 24 24">
+    <rect x="3" y="6.5" width="18" height="13.5" rx="2.5"/>
+    <path d="M3 11h18"/>
+    <rect x="9.7" y="8.7" width="4.6" height="4.6" rx="1.2"/>
+    <path d="M7.5 6.5V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v1.5"/>
+  </symbol>
+
+  <!-- Монета -->
+  <symbol id="i-coin" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.5"/>
+    <path d="M14.8 8.6c-.6-.9-1.7-1.4-2.9-1.4-1.7 0-2.9.9-2.9 2.2 0 3 5.9 1.6 5.9 4.6 0 1.3-1.2 2.2-2.9 2.2-1.2 0-2.3-.5-2.9-1.4"/>
+    <path d="M12 5.5v1.7M12 16.8v1.7"/>
+  </symbol>
+
+  <!-- Курсор / клик -->
+  <symbol id="i-cursor" viewBox="0 0 24 24">
+    <path d="M5.5 3.8 18.9 11l-5.8 1.4-1.5 5.8z"/>
+  </symbol>
+
+  <!-- Улучшение -->
+  <symbol id="i-up" viewBox="0 0 24 24">
+    <path d="M12 19.5V5"/>
+    <path d="m6.3 10.7 5.7-5.7 5.7 5.7"/>
+  </symbol>
+
+  <!-- Инвентарь / сумка -->
+  <symbol id="i-bag" viewBox="0 0 24 24">
+    <rect x="4.5" y="8.5" width="15" height="12" rx="2.5"/>
+    <path d="M8.5 8.5V6.5a3.5 3.5 0 0 1 7 0v2"/>
+    <path d="M4.5 13.5h15"/>
+  </symbol>
+
+  <!-- Продажа / ценник -->
+  <symbol id="i-tag" viewBox="0 0 24 24">
+    <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h6.3c.4 0 .8.2 1.1.4l7.2 7.2a1.5 1.5 0 0 1 0 2.1l-5.4 5.4a1.5 1.5 0 0 1-2.1 0L4.4 12.9a1.5 1.5 0 0 1-.4-1.1z"/>
+    <circle cx="8.7" cy="8.7" r="1.7"/>
+  </symbol>
+
+  <!-- Звезда -->
+  <symbol id="i-star" viewBox="0 0 24 24">
+    <path d="m12 3.2 2.6 5.5 6 .8-4.4 4.1 1.1 5.9-5.3-2.9-5.3 2.9 1.1-5.9L3.4 9.5l6-.8z"/>
+  </symbol>
+
+  <!-- Нож -->
+  <symbol id="i-knife" viewBox="0 0 24 24">
+    <path fill="currentColor" stroke="none" d="M20.6 3.6c-4.8.6-8.9 3.4-12 7.5l-1.8 2.4 3.9 3.9 2.4-1.8c4.1-3.1 6.9-7.2 7.5-12z"/>
+    <path fill="currentColor" stroke="none" d="M6.2 14.6l-2.5 2.5c-.7.7-.7 1.9 0 2.6l.6.6c.7.7 1.9.7 2.6 0l2.5-2.5z"/>
+  </symbol>
+
+  <!-- Перчатка -->
+  <symbol id="i-glove" viewBox="0 0 24 24">
+    <path fill="currentColor" stroke="none" d="M8.2 21.5v-3.6C6 16.2 4.6 13.8 4.6 11V7.2a1.55 1.55 0 0 1 3.1 0v3.4h.5V4.9a1.55 1.55 0 0 1 3.1 0v5.1h.5V4.2a1.55 1.55 0 0 1 3.1 0v5.8h.5V5.6a1.55 1.55 0 0 1 3.1 0v7.6c0 4.7-2.9 8.3-7 8.3z"/>
+  </symbol>
+
+  <!-- Пистолет -->
+  <symbol id="i-pistol" viewBox="0 0 24 24">
+    <path fill="currentColor" stroke="none" d="M3 7.5h18v3.2h-1.6l-1.1 2.1h-4.7l.8-2.1h-3.9l-2.1 7.8H4.3l2.1-7.8H3z"/>
+  </symbol>
+
+  <!-- Винтовка -->
+  <symbol id="i-rifle" viewBox="0 0 24 24">
+    <path fill="currentColor" stroke="none" d="M1.8 10.2l3.8-1.9v1.3h12.6V8h2.9v3.4h1.1v2h-3.6l-1.9 1.9-.7 4h-3.4l.7-4-3.4-1.9H5.6v1.9H1.8z"/>
+  </symbol>
+
+  <!-- Прицел / снайперский -->
+  <symbol id="i-crosshair" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="6.3"/>
+    <path d="M12 2.8v3.4M12 17.8v3.4M2.8 12h3.4M17.8 12h3.4"/>
+    <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>
+  </symbol>
+
+  <!-- Скорострельность / ПП -->
+  <symbol id="i-speed" viewBox="0 0 24 24">
+    <path d="M4.5 5.5 11 12l-6.5 6.5M12.5 5.5 19 12l-6.5 6.5"/>
+  </symbol>
+
+  <!-- Патронный ящик / тяжёлое -->
+  <symbol id="i-ammo" viewBox="0 0 24 24">
+    <path d="M8.2 9.5V6.8a3.8 3.8 0 0 1 7.6 0v2.7"/>
+    <rect x="4.5" y="9.5" width="15" height="10.5" rx="2"/>
+    <path d="M4.5 14h15"/>
+    <path d="M9 14v2.6M12 14v2.6M15 14v2.6"/>
+  </symbol>
+
+  <!-- Щит -->
+  <symbol id="i-shield" viewBox="0 0 24 24">
+    <path d="M12 2.8 19.5 5.6v5.8c0 4.6-3.1 7.9-7.5 9.4-4.4-1.5-7.5-4.8-7.5-9.4V5.6z"/>
+  </symbol>
+
+  <!-- Замок -->
+  <symbol id="i-lock" viewBox="0 0 24 24">
+    <rect x="5" y="10.5" width="14" height="9.5" rx="2"/>
+    <path d="M8.2 10.5V7.8a3.8 3.8 0 0 1 7.6 0v2.7"/>
+    <circle cx="12" cy="15.2" r="1.3" fill="currentColor" stroke="none"/>
+  </symbol>
+
+  <!-- Глаз / засекреченное -->
+  <symbol id="i-eye" viewBox="0 0 24 24">
+    <path d="M2.5 12S6.2 5.8 12 5.8 21.5 12 21.5 12 17.8 18.2 12 18.2 2.5 12 2.5 12z"/>
+    <circle cx="12" cy="12" r="2.9"/>
+  </symbol>
+
+  <!-- Спидометр / StatTrak -->
+  <symbol id="i-gauge" viewBox="0 0 24 24">
+    <path d="M4.6 16.8a8.4 8.4 0 1 1 14.8 0"/>
+    <path d="m12 13.5 4.2-4.6"/>
+    <circle cx="12" cy="13.5" r="1.4" fill="currentColor" stroke="none"/>
+    <path d="M3.5 20.5h17"/>
+  </symbol>
+
+  <!-- Корона -->
+  <symbol id="i-crown" viewBox="0 0 24 24">
+    <path d="M3.2 7.8 8 11.5 12 4.8l4 6.7 4.8-3.7-1.7 10.7H4.9z"/>
+  </symbol>
+
+  <!-- Подарок / сувенир -->
+  <symbol id="i-gift" viewBox="0 0 24 24">
+    <rect x="4" y="9.8" width="16" height="10.7" rx="1.6"/>
+    <path d="M3.2 7h17.6v2.8H3.2z"/>
+    <path d="M12 7v13.5"/>
+    <path d="M12 7C8.6 7 6.8 5.8 6.8 4.2 6.8 3 7.7 2.2 8.9 2.2c2 0 3.1 2.3 3.1 4.8zm0 0c3.4 0 5.2-1.2 5.2-2.8 0-1.2-.9-2-2.1-2-2 0-3.1 2.3-3.1 4.8z"/>
+  </symbol>
+
+  <!-- Закрыть -->
+  <symbol id="i-close" viewBox="0 0 24 24">
+    <path d="M6 6l12 12M18 6 6 18"/>
+  </symbol>
+
+  <!-- Звук -->
+  <symbol id="i-sound" viewBox="0 0 24 24">
+    <path d="M4 9.3v5.4h3.6L13 19V5L7.6 9.3z"/>
+    <path d="M16.3 8.7a4.8 4.8 0 0 1 0 6.6M18.9 6.2a8.2 8.2 0 0 1 0 11.6"/>
+  </symbol>
+  <symbol id="i-sound-off" viewBox="0 0 24 24">
+    <path d="M4 9.3v5.4h3.6L13 19V5L7.6 9.3z"/>
+    <path d="m16.5 9.5 5 5M21.5 9.5l-5 5"/>
+  </symbol>
+
+  <!-- Поиск -->
+  <symbol id="i-search" viewBox="0 0 24 24">
+    <circle cx="10.8" cy="10.8" r="6.3"/>
+    <path d="m15.4 15.4 5.1 5.1"/>
+  </symbol>
+
+  <!-- Сортировка -->
+  <symbol id="i-sort" viewBox="0 0 24 24">
+    <path d="M7 4.5v15m0 0-3.2-3.2M7 19.5l3.2-3.2M17 19.5v-15m0 0-3.2 3.2M17 4.5l3.2 3.2"/>
+  </symbol>
+
+  <!-- Крит -->
+  <symbol id="i-bolt" viewBox="0 0 24 24">
+    <path d="M13.2 2.5 4.8 13.4h6L9.3 21.5l8.4-10.9h-6z"/>
+  </symbol>
+
+  <!-- Стакан монет / пассивный доход -->
+  <symbol id="i-coins" viewBox="0 0 24 24">
+    <ellipse cx="12" cy="6.8" rx="7.5" ry="3"/>
+    <path d="M4.5 6.8v5c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3v-5"/>
+    <path d="M4.5 11.8v5c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3v-5"/>
+  </symbol>
+
+  <!-- История -->
+  <symbol id="i-history" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.3"/>
+    <path d="M12 7.2v4.9l3.4 2"/>
+  </symbol>
+
+  <!-- Галочка -->
+  <symbol id="i-check" viewBox="0 0 24 24">
+    <path d="M4.8 12.6 9.7 17.5 19.2 7"/>
+  </symbol>
+
+  <!-- Инфо -->
+  <symbol id="i-info" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.5"/>
+    <path d="M12 11v5"/>
+    <circle cx="12" cy="7.8" r="0.5" fill="currentColor" stroke="none"/>
+  </symbol>
+
+  <!-- Внимание -->
+  <symbol id="i-warn" viewBox="0 0 24 24">
+    <path d="M12 3.6 22 20.4H2z"/>
+    <path d="M12 9.8v4.6"/>
+    <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/>
+  </symbol>
+
+  <!-- Статистика -->
+  <symbol id="i-trend" viewBox="0 0 24 24">
+    <path d="M3.5 17.5 9 12l3.5 3.5 8-8"/>
+    <path d="M15.5 7.5h5v5"/>
+  </symbol>
+</svg>
+
+<!-- Экран загрузки -->
+<div id="loader" class="loader">
+  <svg class="loader-icon" viewBox="0 0 24 24"><use href="#i-case"/></svg>
+  <div class="loader-text">Загружаем все скины CS2…</div>
+  <div class="loader-bar"><i></i></div>
+</div>
+
+<!-- ================= ШАПКА ================= -->
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-logo" viewBox="0 0 24 24"><use href="#i-case"/></svg>
+    <div class="brand-name">CASE<b>ARENA</b><span>скины CS2 • кейсы • кликер</span></div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="cases"><svg class="icon"><use href="#i-case"/></svg><span>Кейсы</span></button>
+    <button class="tab-btn" data-tab="clicker"><svg class="icon"><use href="#i-cursor"/></svg><span>Заработок</span></button>
+    <button class="tab-btn" data-tab="inventory"><svg class="icon"><use href="#i-bag"/></svg><span>Инвентарь</span><em class="tab-badge" id="invBadge">0</em></button>
+  </nav>
+
+  <div class="wallet">
+    <div class="balance-box" id="balanceBox" title="Твой баланс">
+      <svg class="icon"><use href="#i-coin"/></svg>
+      <span id="balanceValue">$0</span>
+    </div>
+    <button class="icon-btn" id="soundBtn" title="Звук вкл/выкл"><svg class="icon"><use href="#i-sound"/></svg></button>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- ================= ВКЛАДКА: КЕЙСЫ ================= -->
+  <section class="tab-page active" id="page-cases">
+    <div class="hero">
+      <div class="hero-left">
+        <h1>Открывай кейсы<br>и выбивай <em>любой скин CS2</em></h1>
+        <p><b id="skinCount">…</b> скинов • <b id="caseCount">…</b> кейсов • StatTrak™, сувенирные, ножи, перчатки и даже M4A4 | Howl</p>
+      </div>
+      <div class="hero-cards" id="heroStats"></div>
+    </div>
+
+    <div class="recent" id="recentWrap" hidden>
+      <div class="recent-head"><svg class="icon"><use href="#i-history"/></svg><span>Последние дропы</span></div>
+      <div class="recent-list" id="recentList"></div>
+    </div>
+
+    <h2 class="section-title"><svg class="icon"><use href="#i-case"/></svg><span>Все кейсы</span></h2>
+    <div class="cases-grid" id="casesGrid"></div>
+  </section>
+
+  <!-- ================= ВКЛАДКА: ЗАРАБОТОК ================= -->
+  <section class="tab-page" id="page-clicker">
+    <div class="clicker-layout">
+      <div class="clicker-panel">
+        <h2 class="section-title"><svg class="icon"><use href="#i-cursor"/></svg><span>Заработок кликами</span></h2>
+        <div class="click-stage" id="clickStage">
+          <button class="click-coin" id="clickBtn" aria-label="Заработать деньги">
+            <svg viewBox="0 0 120 120" class="coin-svg" aria-hidden="true">
+              <circle cx="60" cy="60" r="52" fill="url(#coinGrad)"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#7a3f00" stroke-width="3"/>
+              <circle cx="60" cy="60" r="42" fill="none" stroke="#7a3f00" stroke-width="2" opacity=".5"/>
+              <path d="M67 33c-3.2-4.4-8.6-6.6-13.9-5.4-8.4 1.8-13.8 8.2-13.8 15.9 0 5 2.6 9 6.9 11.4 3.6 2 7.9 2.8 11.8 4 5.8 1.9 9.6 5 9.6 10.5 0 7.1-6 12.7-14.4 12.7-6.4 0-12.2-3-15.4-8" fill="none" stroke="#7a3f00" stroke-width="7.5" stroke-linecap="round"/>
+              <path d="M60 25.5v13M60 81.5v13" stroke="#7a3f00" stroke-width="7.5" stroke-linecap="round"/>
+              <ellipse cx="46" cy="42" rx="12" ry="7" fill="#fff" opacity=".28" transform="rotate(-24 46 42)"/>
+            </svg>
+            <span class="click-coin-label">КЛИК</span>
+          </button>
+          <div class="click-meta">
+            <div class="cm-item"><svg class="icon"><use href="#i-cursor"/></svg>+<b id="perClick">$1</b> за клик</div>
+            <div class="cm-item"><svg class="icon"><use href="#i-bolt"/></svg>крит <b id="critVal">3%</b> ×10</div>
+            <div class="cm-item"><svg class="icon"><use href="#i-coins"/></svg>ферма <b id="passiveVal">$0/сек</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="upgrades-panel">
+        <h2 class="section-title"><svg class="icon"><use href="#i-up"/></svg><span>Апгрейды</span></h2>
+        <div id="upgradesList"></div>
+        <h2 class="section-title"><svg class="icon"><use href="#i-trend"/></svg><span>Статистика</span></h2>
+        <div class="clicker-stats" id="clickerStats"></div>
+        <button class="btn btn-danger-outline" id="resetBtn"><svg class="icon"><use href="#i-warn"/></svg>Сбросить прогресс</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ВКЛАДКА: ИНВЕНТАРЬ ================= -->
+  <section class="tab-page" id="page-inventory">
+    <div class="inv-head">
+      <h2 class="section-title"><svg class="icon"><use href="#i-bag"/></svg><span>Инвентарь</span><span class="inv-total" id="invTotal">$0</span></h2>
+      <div class="inv-controls">
+        <label class="search-box">
+          <svg class="icon"><use href="#i-search"/></svg>
+          <input type="text" id="invSearch" placeholder="Поиск скина…" autocomplete="off">
+        </label>
+        <label class="select-box">
+          <svg class="icon"><use href="#i-sort"/></svg>
+          <select id="invSort">
+            <option value="new">Сначала новые</option>
+            <option value="old">Сначала старые</option>
+            <option value="priceDesc">Дорогие сверху</option>
+            <option value="priceAsc">Дешёвые сверху</option>
+            <option value="tierDesc">Редкие сверху</option>
+          </select>
+        </label>
+        <button class="btn btn-ghost btn-sm" id="sellJunkBtn" title="Продать все предметы дешевле $50"><svg class="icon"><use href="#i-tag"/></svg>Продать хлам</button>
+        <button class="btn btn-danger btn-sm" id="sellAllBtn"><svg class="icon"><use href="#i-tag"/></svg>Продать всё</button>
+      </div>
+    </div>
+    <div class="inv-grid" id="invGrid"></div>
+    <div class="inv-empty" id="invEmpty">
+      <svg class="inv-empty-icon" viewBox="0 0 24 24"><use href="#i-bag"/></svg>
+      <h3>Инвентарь пуст</h3>
+      <p>Заработай денег кликами и открой свой первый кейс!</p>
+      <button class="btn" data-goto="clicker"><svg class="icon"><use href="#i-cursor"/></svg>Зарабатывать</button>
+      <button class="btn btn-ghost" data-goto="cases"><svg class="icon"><use href="#i-case"/></svg>К кейсам</button>
+    </div>
+    <div class="inv-more"><button class="btn btn-ghost hidden" id="invMoreBtn">Показать ещё</button></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    <svg class="icon"><use href="#i-case"/></svg>
+    <span><b>CaseArena</b> — фан-симулятор. Не связан с Valve и Steam.</span>
+  </div>
+  <div class="footer-right">
+    <span>Данные скинов: <a href="https://github.com/ByMykel/CSGO-API" target="_blank" rel="noopener">ByMykel/CSGO-API</a></span>
+    <span>Прогресс сохраняется локально в браузере</span>
+  </div>
+</footer>
+
+<!-- ================= МОДАЛКА: СОДЕРЖИМОЕ КЕЙСА ================= -->
+<div class="overlay hidden" id="caseOverlay">
+  <div class="modal case-modal">
+    <button class="modal-close" data-close title="Закрыть"><svg class="icon"><use href="#i-close"/></svg></button>
+    <div class="cm-head">
+      <div class="cm-icon" id="cmIcon"><svg class="icon"><use href="#i-case"/></svg></div>
+      <div>
+        <h3 id="cmName">Кейс</h3>
+        <p id="cmDesc"></p>
+      </div>
+    </div>
+    <div class="cm-odds" id="cmOdds"></div>
+    <div class="cm-pool" id="cmPool"></div>
+    <div class="cm-actions">
+      <button class="btn btn-big" id="cmOpenBtn"><svg class="icon"><use href="#i-case"/></svg><span>Открыть</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= МОДАЛКА: ВЫИГРЫШ ================= -->
+<div class="overlay hidden" id="winOverlay">
+  <div class="modal win-modal" id="winModal">
+    <div class="win-rays"></div>
+    <button class="modal-close" data-close title="Забрать в инвентарь"><svg class="icon"><use href="#i-close"/></svg></button>
+    <div class="win-tier" id="winTier">Тайное</div>
+    <div class="win-img" id="winImg"><img alt=""></div>
+    <div class="win-name" id="winName">—</div>
+    <div class="win-sub" id="winSub"></div>
+    <div class="win-badges" id="winBadges"></div>
+    <div class="win-price" id="winPrice">$0</div>
+    <div class="win-actions">
+      <button class="btn btn-green" id="winSellBtn"><svg class="icon"><use href="#i-tag"/></svg><span>Продать</span></button>
+      <button class="btn btn-ghost" id="winKeepBtn"><svg class="icon"><use href="#i-bag"/></svg><span>В инвентарь</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= МОДАЛКА: ПОДТВЕРЖДЕНИЕ ================= -->
+<div class="overlay hidden" id="confirmOverlay">
+  <div class="modal confirm-modal">
+    <div class="confirm-icon"><svg class="icon"><use href="#i-warn"/></svg></div>
+    <p id="confirmText">Вы уверены?</p>
+    <div class="confirm-actions">
+      <button class="btn btn-danger" id="confirmYes">Да</button>
+      <button class="btn btn-ghost" id="confirmNo">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= РУЛЕТКА ОТКРЫТИЯ ================= -->
+<div class="roul-overlay hidden" id="roulOverlay">
+  <div class="roul-box">
+    <div class="roul-head">
+      <div class="roul-title">
+        <svg class="icon"><use href="#i-case"/></svg>
+        <span id="roulCaseName">Кейс</span>
+      </div>
+      <div class="roul-head-actions">
+        <button class="btn btn-ghost btn-sm" id="roulSkip"><svg class="icon"><use href="#i-speed"/></svg>Пропустить</button>
+        <button class="icon-btn" id="roulClose" title="Закрыть"><svg class="icon"><use href="#i-close"/></svg></button>
+      </div>
+    </div>
+    <div class="roul-window" id="roulWindow">
+      <div class="roul-track" id="roulTrack"></div>
+      <div class="roul-marker"></div>
+    </div>
+    <div class="roul-foot">
+      <label class="check">
+        <input type="checkbox" id="fastOpenChk">
+        <span class="checkmark"></span>
+        <span>Быстрое открытие без анимации</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
