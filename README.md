@@ -111,7 +111,7 @@ src/
   game.js             Game object: fixed tick order, spawning, tools, indices
   tools.js            tool catalogue (GUI, hotkeys and applyTool read it)
   sprites.js          palette (32 colours) and procedural sprite generator
-  assets.js           loads assets/atlas.png, or generates the atlas at runtime
+  assets.js           builds the sprite atlas at start-up from sprites.js (no binary loaded)
   font.js             3x5 bitmap font
   render.js           terrain buffer, sprites, overlays, HUD, help
   gui.js              bottom panel: button layout, hit testing, tooltips
@@ -121,7 +121,7 @@ tools/
   build-atlas.mjs     writes assets/atlas.png (zlib PNG encoder, no dependencies)
   serve.mjs           static server bound to 0.0.0.0
 test/                 node:test suites (see npm test)
-assets/               generated atlas (atlas.png, atlas.json)
+assets/               atlas.png and atlas.json for external use (the game does not load them)
 ```
 
 Tick order (`Game.step`, 20 Hz): pheromones -> physics -> enemies -> ants -> combat
@@ -146,9 +146,9 @@ Palette: 32 named colours in `src/sprites.js`. Every sprite and UI colour uses t
 - **New tool:** add an entry to `TOOLS` in `src/tools.js` with an icon sprite name. For
   a new kind of action, add a `case` in `Game.applyTool`. The GUI, hotkeys and
   tooltips pick it up automatically (hotkey must be unique).
-- **New sprite:** add a spec in `buildSpecs()` in `src/sprites.js`, then run
-  `npm run build:atlas`. Without the atlas the game still generates the sprite at
-  runtime.
+- **New sprite:** add a spec in `buildSpecs()` in `src/sprites.js`. The game builds
+  the atlas from it at start-up; run `npm run build:atlas` only to refresh the
+  exported `assets/atlas.png` file.
 - **New ant role:** add it to `ROLE` and `ROLE_SHARE` in `src/ant.js`, add a tint in
   `ROLE_TINTS` in `src/sprites.js`, and add a `decide...` branch in `src/ai.js`.
 - **New enemy:** add it to `ENEMY_SPECIES` in `src/enemies.js` and a sprite

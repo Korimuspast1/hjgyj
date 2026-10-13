@@ -1,7 +1,10 @@
 /**
- * Sprite assets. The browser prefers the pre-built atlas (assets/atlas.png +
- * atlas.json). If that is missing, the same sprites are generated at runtime
- * from src/sprites.js, so the game still runs from a plain file server.
+ * Sprite assets, generated from src/sprites.js when the game starts.
+ *
+ * The code is the only source of sprite art. assets/atlas.png is still written by
+ * `npm run build:atlas` for external use, but the game does not load it: a stale
+ * or cached copy of the PNG and JSON can disagree with each other and show
+ * garbled icons and ants. Generating the sprites takes a few milliseconds.
  */
 import { buildSheet } from './sprites.js';
 
@@ -12,20 +15,11 @@ import { buildSheet } from './sprites.js';
  */
 
 /**
- * Loads the atlas, falling back to procedural sprites.
+ * Builds the sprite atlas in memory. Async so the call site stays unchanged.
  * @returns {Promise<Assets>}
  */
 export async function loadAssets() {
-  try {
-    const res = await fetch('assets/atlas.json', { cache: 'no-cache' });
-    if (!res.ok) throw new Error(`atlas.json: HTTP ${res.status}`);
-    const meta = await res.json();
-    const image = await loadImage(`assets/${meta.image}`);
-    return { image, frames: meta.frames };
-  } catch (err) {
-    console.info('Using procedural sprites:', err.message);
-    return generatedAssets();
-  }
+  return generatedAssets();
 }
 
 /** Builds the atlas in memory from the sprite code. */
@@ -39,15 +33,6 @@ export function generatedAssets() {
   imageData.data.set(sheet.rgba);
   ctx.putImageData(imageData, 0, 0);
   return { image: canvas, frames: sheet.frames };
-}
-
-function loadImage(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`cannot load ${url}`));
-    img.src = url;
-  });
 }
 
 /**
