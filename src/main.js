@@ -108,6 +108,7 @@ function makeActions() {
         case 'zoomIn': actions.cycleZoom(1); break;
         case 'zoomOut': actions.cycleZoom(-1); break;
         case 'help': actions.help(); break;
+        case 'clear': app.game.clearSelection(); break;
         default:
           if (name.startsWith('debug:')) actions.toggleDebug(name.slice(6));
       }
@@ -144,6 +145,8 @@ function startLoop(canvas, ctx) {
       mouse: app.input.pointer,
       selectedTool: TOOLS_BY_ID[game.ui.tool],
       help: app.helpOpen,
+      // Fraction of the next tick already elapsed: positions are interpolated by it.
+      alpha: game.ui.paused ? 1 : Math.min(1, acc),
     });
     app.gui.draw(ctx, game, app.input.pointer);
     requestAnimationFrame(frame);

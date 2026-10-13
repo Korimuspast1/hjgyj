@@ -62,6 +62,8 @@ export class Game {
     /** Cell indices of open air cells that rest on solid ground. */
     this.surfaceCells = [];
     this.inspectIndex = -1;
+    /** Ant or enemy picked with the inspect tool (view state, not saved). */
+    this.selected = null;
     this.events = [];
 
     this.stats = {
@@ -188,6 +190,15 @@ export class Game {
 
     this.pheromones.update(this.world);
     this.pathBudget = MAX_PATHS_PER_TICK;
+    // Remember where each creature started the tick, so the renderer can interpolate.
+    for (const a of this.ants) {
+      a.prevX = a.x;
+      a.prevY = a.y;
+    }
+    for (const e of this.enemies) {
+      e.prevX = e.x;
+      e.prevY = e.y;
+    }
 
     this.rebuildIndices();
     stepPhysics(this.world, this.rng, this.physicsHooks, this.tick);
@@ -244,6 +255,12 @@ export class Game {
     this.enemies = enemies;
 
     this.brood = this.brood.filter((b) => b.alive);
+
+    if (this.selected && !this.selected.alive) {
+      const what = this.selected.role ? `Ant #${this.selected.id}` : `${this.selected.species} #${this.selected.id}`;
+      this.log(`${what} died (${this.selected.cause}).`);
+      this.selected = null;
+    }
   }
 
   leaveCorpse(entity, units = 6) {
@@ -504,11 +521,33 @@ export class Game {
         break;
       case 'inspect':
         this.inspectIndex = world.index(x, y);
+        this.selected = this.creatureNear(x, y, 2);
         break;
       default:
         break;
     }
     if (tool.kind !== 'inspect') this.refreshSurface();
+  }
+
+  /** Closest living ant or enemy within Chebyshev `radius` of (x,y), or null. */
+  creatureNear(x, y, radius) {
+    let best = null;
+    let bestDist = Infinity;
+    for (const c of [...this.ants, ...this.enemies]) {
+      if (!c.alive) continue;
+      const d = chebyshev(c.x, c.y, x, y);
+      if (d <= radius && d < bestDist) {
+        bestDist = d;
+        best = c;
+      }
+    }
+    return best;
+  }
+
+  /** Clears the inspect selection (Escape). */
+  clearSelection() {
+    this.selected = null;
+    this.inspectIndex = -1;
   }
 
   /** Right-click: removes living things in the brush area, or erases terrain when none are there. */

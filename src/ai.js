@@ -364,6 +364,10 @@ function digStep(ant, game) {
 
   const target = adjacentDiggable(game, ant);
   if (target >= 0) {
+    // Face the cell being dug and work the legs, so the digging ant looks busy.
+    const tx = world.xOf(target);
+    if (tx !== ant.x) ant.facing = tx > ant.x ? 1 : -1;
+    if (game.tick % 3 === 0) ant.animFrame ^= 1;
     if (target !== ant.digTarget) {
       ant.digTarget = target;
       ant.digProgress = 0;

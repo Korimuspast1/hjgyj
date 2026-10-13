@@ -96,6 +96,8 @@ export class Renderer {
     this.terrainDirty = true;
     this.lastDebugKey = '';
     this.frame = 0;
+    /** 0..1 position between the previous and current tick (for smooth motion). */
+    this.alpha = 1;
   }
 
   /** Forces a terrain rebuild on the next draw (called after the player paints). */
@@ -161,6 +163,7 @@ export class Renderer {
     const ctx = this.ctx;
     const ui = game.ui;
     this.frame++;
+    this.alpha = view.alpha == null ? 1 : view.alpha;
     if (this.terrainDirty || game.tick !== this.lastTerrainTick || this.debugKey(ui) !== this.lastDebugKey) {
       this.buildTerrain(game);
       this.lastDebugKey = this.debugKey(ui);
@@ -189,6 +192,7 @@ export class Renderer {
     if (ui.debug.grid) this.drawGrid(game);
     if (ui.debug.states) this.drawStates(game);
     this.drawHover(game, view.mouse);
+    this.drawSelection(game);
 
     ctx.restore();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -215,10 +219,33 @@ export class Renderer {
     }
   }
 
+  /**
+   * Draws a creature interpolated between its previous and current cell, mirrored
+   * when it faces left. Returns the screen-space box in world cells.
+   */
+  drawCreature(name, x, y, prevX, prevY, facing) {
+    const { w, h } = spriteSize(this.assets, name);
+    const ex = (prevX ?? x) + (x - (prevX ?? x)) * this.alpha;
+    const ey = (prevY ?? y) + (y - (prevY ?? y)) * this.alpha;
+    const left = ex - ((w - 1) >> 1);
+    const top = ey - h + 1;
+    const ctx = this.ctx;
+    if (facing < 0) {
+      ctx.save();
+      ctx.translate(left + w, top);
+      ctx.scale(-1, 1);
+      drawSprite(ctx, this.assets, name, 0, 0);
+      ctx.restore();
+    } else {
+      drawSprite(ctx, this.assets, name, left, top);
+    }
+    return { left, top, w, h };
+  }
+
   drawEnemies(game) {
     for (const e of game.enemies) {
       if (!e.alive) continue;
-      this.spriteAt(`${e.species}_${e.animFrame & 1}`, e.x, e.y);
+      this.drawCreature(`${e.species}_${e.animFrame & 1}`, e.x, e.y, e.prevX, e.prevY, e.facing);
     }
   }
 
@@ -227,13 +254,33 @@ export class Renderer {
     for (const ant of game.ants) {
       if (!ant.alive) continue;
       const name = ant.role === 'queen' ? `queen_${ant.animFrame & 1}` : antSpriteName(ant);
-      const h = this.spriteAt(name, ant.x, ant.y);
+      const box = this.drawCreature(name, ant.x, ant.y, ant.prevX, ant.prevY, ant.facing);
       if (ant.inventory) {
         const colour = { food: 'leaf1', corpse: 'rock2', sand: 'sand0', egg: 'cream' }[ant.inventory.kind] || 'cream';
         ctx.fillStyle = colorOf(colour);
-        ctx.fillRect(ant.x, ant.y - h - 1, 2, 2);
+        ctx.fillRect(Math.round(box.left + box.w / 2) - 1, Math.round(box.top) - 2, 2, 2);
       }
     }
+  }
+
+  /** Yellow box around the creature picked with the inspect tool. */
+  drawSelection(game) {
+    const sel = game.selected;
+    if (!sel || !sel.alive) return;
+    const ctx = this.ctx;
+    const name = sel.role ? (sel.role === 'queen' ? `queen_${sel.animFrame & 1}` : antSpriteName(sel)) : `${sel.species}_${sel.animFrame & 1}`;
+    const { w, h } = spriteSize(this.assets, name);
+    const ex = sel.prevX + (sel.x - sel.prevX) * this.alpha;
+    const ey = sel.prevY + (sel.y - sel.prevY) * this.alpha;
+    const x0 = ex - ((w - 1) >> 1) - 2;
+    const y0 = ey - h - 1;
+    const bw = w + 4;
+    const bh = h + 3;
+    ctx.fillStyle = colorOf('yellow');
+    ctx.fillRect(x0, y0, bw, 1);
+    ctx.fillRect(x0, y0 + bh - 1, bw, 1);
+    ctx.fillRect(x0, y0, 1, bh);
+    ctx.fillRect(x0 + bw - 1, y0, 1, bh);
   }
 
   drawPaths(game) {
@@ -330,30 +377,68 @@ export class Renderer {
     if (game.inspectIndex >= 0) this.drawInspect(game);
   }
 
+  /** Right-hand info panel: full data for a selected creature, else the inspected cell. */
   drawInspect(game) {
     const ctx = this.ctx;
+    const lines = game.selected && game.selected.alive ? this.creatureLines(game, game.selected) : this.cellLines(game);
+    const w = Math.max(...lines.map(textWidth)) + 8;
+    const h = lines.length * 8 + 4;
+    const bx = VIEW_WIDTH - w - 4;
+    const by = 16;
+    ctx.fillStyle = 'rgba(27, 20, 16, 0.88)';
+    ctx.fillRect(bx, by, w, h);
+    lines.forEach((line, k) => drawText(ctx, line, bx + 4, by + 3 + k * 8, k === 0 ? '#f0d75a' : '#f3e9c6'));
+  }
+
+  cellLines(game) {
     const world = game.world;
     const i = game.inspectIndex;
     const x = world.xOf(i);
     const y = world.yOf(i);
     const ph = LAYER_NAMES.map((n, l) => `${n[0].toUpperCase()}${Math.round(game.pheromones.layers[l][i])}`).join(' ');
-    const occupant = game.ants.find((a) => a.alive && a.x === x && a.y === y);
-    const lines = [
+    return [
       `CELL ${x},${y}  ${CELL_NAMES[world.type[i]].toUpperCase()}`,
       `DENSITY ${world.density[i]}  MOIST ${world.moisture[i]}  LIGHT ${world.light[i]}`,
       `PHERO ${ph}`,
+      'CLICK AN ANT OR ENEMY FOR DETAILS',
     ];
-    if (occupant) {
-      const role = ROLE_LABELS[occupant.role] || occupant.role.toUpperCase();
-      lines.push(`ANT ${role} HP ${Math.round(occupant.hp)} HUNGER ${Math.round(occupant.hunger)} ${occupant.task.kind.toUpperCase()}`);
+  }
+
+  /** Every field the player may want to read about an ant or enemy. */
+  creatureLines(game, c) {
+    const world = game.world;
+    const cell = CELL_NAMES[world.typeAt(c.x, c.y)].toUpperCase();
+    const here = world.index(c.x, c.y);
+    const ph = (l) => Math.round(game.pheromones.layers[l][here]);
+    const target = c.task && c.task.target ? `${c.task.target.x},${c.task.target.y}` : '-';
+    const pct = (v) => Math.round(v);
+    if (c.species) {
+      return [
+        `${c.species.toUpperCase()} #${c.id}  ENEMY`,
+        `HP ${pct(c.hp)}/${c.maxHp}  DAMAGE ${c.damage}  COOLDOWN ${c.cooldown}/${c.cooldownMax}`,
+        `SPEED ${c.speed.toFixed(2)}  SIGHT ${c.sight}  FACING ${c.facing > 0 ? 'RIGHT' : 'LEFT'}`,
+        `POS ${c.x},${c.y}  CELL ${cell}`,
+        `CARRYING ${c.carrying || 'NOTHING'}  STUCK ${c.stuckTicks}`,
+      ];
     }
-    const w = Math.max(...lines.map(textWidth)) + 8;
-    const h = lines.length * 8 + 4;
-    const bx = 4;
-    const by = 16;
-    ctx.fillStyle = 'rgba(27, 20, 16, 0.85)';
-    ctx.fillRect(bx, by, w, h);
-    lines.forEach((line, k) => drawText(ctx, line, bx + 4, by + 3 + k * 8, '#f3e9c6'));
+    const colony = game.colonyOf(c);
+    const role = ROLE_LABELS[c.role] || c.role.toUpperCase();
+    const pathInfo = c.path ? `${c.pathPos}/${c.path.length}` : '-';
+    const danger = c.memory.dangerTick < 0 ? 'NEVER' : `${game.tick - c.memory.dangerTick} TICKS AGO`;
+    return [
+      `ANT #${c.id}  ${role}  ${c.alive ? 'ALIVE' : 'DEAD'}`,
+      `COLONY ${colony ? colony.name : '-'}  AGE ${c.ageTicks} TICKS`,
+      `HP ${pct(c.hp)}/${c.maxHp}  DAMAGE ${c.damage}  STRENGTH ${c.strength.toFixed(2)}`,
+      `HUNGER ${pct(c.hunger)}  THIRST ${pct(c.thirst)}  ENERGY ${pct(c.energy)}`,
+      `SPEED ${c.speed.toFixed(2)}  SIGHT ${c.sight}  FACING ${c.facing > 0 ? 'RIGHT' : 'LEFT'}`,
+      `TASK ${c.task.kind.toUpperCase()}  TARGET ${target}`,
+      `CARRYING ${c.carrying ? c.carrying.toUpperCase() : 'NOTHING'}`,
+      `POS ${c.x},${c.y}  CELL ${cell}`,
+      `PATH ${pathInfo}  STUCK ${c.stuckTicks}  FAILS ${c.task.fails || 0}`,
+      `MOVE ${c.moveCredit.toFixed(2)}  NEXT DECISION ${c.decisionTimer}`,
+      `DANGER SEEN ${danger}`,
+      `PHERO H${ph(0)} F${ph(1)} D${ph(2)} E${ph(3)}`,
+    ];
   }
 
   drawHelp() {

@@ -41,8 +41,10 @@ npm run build:atlas  # regenerates assets/atlas.png and assets/atlas.json
 | Save / load (browser storage) | `F5` / `F9` (or SAVE / LOAD) |
 | Reset to empty | `Delete` (or RESET) |
 | Debug overlays | `V` pheromones, `X` ant states, `N` cell grid, `M` ant paths |
-| Inspect a cell | select the INSPECT tool (`F`) and click |
+| Inspect a cell or creature | select the INSPECT tool (`F`) and click; click an ant or enemy to see all its data (role, needs, task, target, carried item, path, memory, pheromones). `Esc` clears the selection |
 | Help | `H` |
+
+Rendering: ants and enemies are drawn between their previous and current cell using the tick fraction, so motion is smooth at any speed. Sprites are mirrored when facing left; diggers face the cell they dig.
 
 Tools: worker, queen (one per colony), soldier, raider (enemy ant), beetle, spider;
 paint sand, dirt, clay, rock, water; food (seed, leaf, sugar); egg, larva; eraser;

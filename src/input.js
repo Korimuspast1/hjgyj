@@ -31,6 +31,7 @@ const KEY_ACTIONS = Object.freeze({
   n: 'debug:grid',
   m: 'debug:paths',
   h: 'help',
+  Escape: 'clear',
 });
 
 export class Input {
