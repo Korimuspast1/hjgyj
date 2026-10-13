@@ -17,8 +17,10 @@ import { PATH_RETRY_TICKS } from './config.js';
 export function moveEntity(entity, x, y) {
   const dx = x - entity.x;
   if (dx !== 0) entity.facing = dx > 0 ? 1 : -1;
-  entity.prevX = entity.x;
-  entity.prevY = entity.y;
+  // Remember where the glide started and when, so the renderer can slide smoothly.
+  entity.fromX = entity.x;
+  entity.fromY = entity.y;
+  entity.movedTick = entity.clock;
   entity.x = x;
   entity.y = y;
   entity.animFrame ^= 1;

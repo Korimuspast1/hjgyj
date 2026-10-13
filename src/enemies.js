@@ -22,8 +22,10 @@ export class Enemy {
     this.species = species;
     this.x = x;
     this.y = y;
-    this.prevX = x;
-    this.prevY = y;
+    this.fromX = x;
+    this.fromY = y;
+    this.movedTick = -100; // tick of the last move (glide start)
+    this.clock = 0; // current tick, set by Game.step
     this.facing = 1;
     this.animFrame = 0;
     this.alive = true;

@@ -48,8 +48,15 @@ const LAYER_RGB = [
 ];
 
 /** Creature sprites are named after roles/species, with a walk-frame suffix. */
+/**
+ * Picks the sprite for an ant from its role, walk-cycle frame and current task:
+ * fighting shows the bite pose, active digging shows the dig pose, otherwise walk.
+ */
 function antSpriteName(ant) {
-  return `ant_${ant.role}_${ant.animFrame & 1}`;
+  const f = ant.animFrame & 1;
+  if (ant.task.kind === 'fight') return `ant_${ant.role}_bite`;
+  if (ant.task.kind === 'dig' && ant.digTarget >= 0) return `ant_${ant.role}_dig${f}`;
+  return `ant_${ant.role}_${f}`;
 }
 
 /** Terrain colour for one cell, as a packed uint32. */
@@ -98,6 +105,7 @@ export class Renderer {
     this.frame = 0;
     /** 0..1 position between the previous and current tick (for smooth motion). */
     this.alpha = 1;
+    this.tick = 0;
   }
 
   /** Forces a terrain rebuild on the next draw (called after the player paints). */
@@ -164,6 +172,7 @@ export class Renderer {
     const ui = game.ui;
     this.frame++;
     this.alpha = view.alpha == null ? 1 : view.alpha;
+    this.tick = game.tick;
     if (this.terrainDirty || game.tick !== this.lastTerrainTick || this.debugKey(ui) !== this.lastDebugKey) {
       this.buildTerrain(game);
       this.lastDebugKey = this.debugKey(ui);
@@ -220,15 +229,31 @@ export class Renderer {
   }
 
   /**
-   * Draws a creature interpolated between its previous and current cell, mirrored
-   * when it faces left. Returns the screen-space box in world cells.
+   * Where a creature is drawn this frame. A move is a glide from the cell it
+   * left to the cell it entered, spread over the time the entity needs for one
+   * step (1 / speed ticks). Between moves the creature rests on its cell.
+   * @returns {{x: number, y: number}} fractional cell coordinates
    */
-  drawCreature(name, x, y, prevX, prevY, facing) {
+  entityPos(e) {
+    if (e.fromX === e.x && e.fromY === e.y) return { x: e.x, y: e.y };
+    const carry = e.carrying || (e.inventory && e.inventory.kind) ? 0.7 : 1;
+    const stepTicks = 1 / Math.max(0.05, e.speed * carry);
+    const progress = Math.min(1, Math.max(0, (this.tick - e.movedTick + this.alpha) / stepTicks));
+    return {
+      x: e.fromX + (e.x - e.fromX) * progress,
+      y: e.fromY + (e.y - e.fromY) * progress,
+    };
+  }
+
+  /**
+   * Draws a creature at its glide position, mirrored when it faces left.
+   * Returns the screen-space box in world cells.
+   */
+  drawCreature(name, e, facing) {
     const { w, h } = spriteSize(this.assets, name);
-    const ex = (prevX ?? x) + (x - (prevX ?? x)) * this.alpha;
-    const ey = (prevY ?? y) + (y - (prevY ?? y)) * this.alpha;
-    const left = ex - ((w - 1) >> 1);
-    const top = ey - h + 1;
+    const pos = this.entityPos(e);
+    const left = pos.x - ((w - 1) >> 1);
+    const top = pos.y - h + 1;
     const ctx = this.ctx;
     if (facing < 0) {
       ctx.save();
@@ -245,7 +270,7 @@ export class Renderer {
   drawEnemies(game) {
     for (const e of game.enemies) {
       if (!e.alive) continue;
-      this.drawCreature(`${e.species}_${e.animFrame & 1}`, e.x, e.y, e.prevX, e.prevY, e.facing);
+      this.drawCreature(`${e.species}_${e.animFrame & 1}`, e, e.facing);
     }
   }
 
@@ -254,7 +279,7 @@ export class Renderer {
     for (const ant of game.ants) {
       if (!ant.alive) continue;
       const name = ant.role === 'queen' ? `queen_${ant.animFrame & 1}` : antSpriteName(ant);
-      const box = this.drawCreature(name, ant.x, ant.y, ant.prevX, ant.prevY, ant.facing);
+      const box = this.drawCreature(name, ant, ant.facing);
       if (ant.inventory) {
         const colour = { food: 'leaf1', corpse: 'rock2', sand: 'sand0', egg: 'cream' }[ant.inventory.kind] || 'cream';
         ctx.fillStyle = colorOf(colour);
@@ -270,8 +295,9 @@ export class Renderer {
     const ctx = this.ctx;
     const name = sel.role ? (sel.role === 'queen' ? `queen_${sel.animFrame & 1}` : antSpriteName(sel)) : `${sel.species}_${sel.animFrame & 1}`;
     const { w, h } = spriteSize(this.assets, name);
-    const ex = sel.prevX + (sel.x - sel.prevX) * this.alpha;
-    const ey = sel.prevY + (sel.y - sel.prevY) * this.alpha;
+    const pos = this.entityPos(sel);
+    const ex = pos.x;
+    const ey = pos.y;
     const x0 = ex - ((w - 1) >> 1) - 2;
     const y0 = ey - h - 1;
     const bw = w + 4;

@@ -18,7 +18,13 @@ import { World, CELL, FOOD_KIND, FOOD_UNITS, ANT_PASSABLE } from './world.js';
 import { Pheromones } from './pheromones.js';
 import { Pathfinder } from './pathfinding.js';
 import { SpatialHash } from './spatial.js';
-import { Random, chebyshev } from './utils.js';
+import { Random, chebyshev, DX, DY } from './utils.js';
+import {
+  CRUSH_DAMAGE,
+  FOOD_SUPPLY_INTERVAL,
+  FOOD_SUPPLY_LOW,
+  FOOD_SUPPLY_SPREAD,
+} from './config.js';
 import { Ant, ROLE } from './ant.js';
 import { Colony } from './colony.js';
 import { Enemy, updateEnemy } from './enemies.js';
@@ -191,14 +197,8 @@ export class Game {
     this.pheromones.update(this.world);
     this.pathBudget = MAX_PATHS_PER_TICK;
     // Remember where each creature started the tick, so the renderer can interpolate.
-    for (const a of this.ants) {
-      a.prevX = a.x;
-      a.prevY = a.y;
-    }
-    for (const e of this.enemies) {
-      e.prevX = e.x;
-      e.prevY = e.y;
-    }
+    for (const a of this.ants) a.clock = this.tick;
+    for (const e of this.enemies) e.clock = this.tick;
 
     this.rebuildIndices();
     stepPhysics(this.world, this.rng, this.physicsHooks, this.tick);
@@ -214,6 +214,7 @@ export class Game {
 
     for (const b of this.brood) updateBrood(b, this);
     for (const colony of this.colonies) colony.update(this);
+    this.supplyFood();
 
     if (this.tick % 60 === 0) this.refreshSurface();
     this.removeDead();
@@ -314,12 +315,20 @@ export class Game {
     const y = this.world.yOf(i);
     for (const ant of this.antHash.query(x, y, 0)) {
       if (!ant.alive || ant.x !== x || ant.y !== y) continue;
-      if (ant.role === ROLE.QUEEN) {
-        ant.hp -= 40;
-        if (ant.hp <= 0) this.killAnt(ant, 'crushed');
-      } else {
-        this.killAnt(ant, 'crushed');
+      // Sand landing on an ant pushes it into a free neighbour and hurts it. If
+      // there is no room, the ant takes the hit and stays put; it dies only when
+      // its HP runs out.
+      ant.hp -= ant.role === ROLE.QUEEN ? 40 : CRUSH_DAMAGE;
+      const exit = this.freeNeighbour(x, y, i);
+      if (exit) {
+        ant.fromX = ant.x;
+        ant.fromY = ant.y;
+        ant.movedTick = this.tick;
+        ant.x = exit.x;
+        ant.y = exit.y;
+        ant.path = null;
       }
+      if (ant.hp <= 0) this.killAnt(ant, 'crushed');
     }
     for (const enemy of this.enemyHash.query(x, y, 0)) {
       if (!enemy.alive || enemy.x !== x || enemy.y !== y) continue;
@@ -372,6 +381,38 @@ export class Game {
       }
     }
     return null;
+  }
+
+  /** A passable, unoccupied neighbour of (x, y) other than cell `avoid`, or null. */
+  freeNeighbour(x, y, avoid) {
+    for (let d = 0; d < 8; d++) {
+      const nx = x + DX[d];
+      const ny = y + DY[d];
+      if (!this.world.inBounds(nx, ny) || this.world.index(nx, ny) === avoid) continue;
+      if (this.isFreeSpot(nx, ny)) return { x: nx, y: ny };
+    }
+    return null;
+  }
+
+  /**
+   * Keeps the colony fed: while its store is low, a pile of sugar drops onto the
+   * surface above the nest. See FOOD_SUPPLY_* in config.js.
+   */
+  supplyFood() {
+    if (this.tick % FOOD_SUPPLY_INTERVAL !== 0) return;
+    const colony = this.colonies[0];
+    if (!colony || !colony.nest || colony.foodStored >= FOOD_SUPPLY_LOW) return;
+    const world = this.world;
+    for (let t = 0; t < 20; t++) {
+      const x = colony.nest.x + this.rng.int(2 * FOOD_SUPPLY_SPREAD + 1) - FOOD_SUPPLY_SPREAD;
+      const y = SURFACE_Y - 2;
+      if (!world.inBounds(x, y)) continue;
+      const i = world.index(x, y);
+      if (world.type[i] !== CELL.EMPTY) continue;
+      world.setIndex(i, CELL.FOOD, FOOD_UNITS[FOOD_KIND.SUGAR], FOOD_KIND.SUGAR);
+      this.log('Fresh sugar dropped near the nest.');
+      return;
+    }
   }
 
   /** True when an ant-passable cell holds no living entity. */

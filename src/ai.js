@@ -148,9 +148,11 @@ export function decideTask(ant, game) {
   }
 
   // Colony work.
-  if (ant.role === ROLE.NURSE) {
+  // Brood needs feeding. Nurses are best at it, but any ant helps: otherwise a
+  // colony with no nurses never hatches new ants, and so never gets nurses.
+  {
     const brood = findNurseTarget(game, ant, colony);
-    if (brood) offer('nurse', 0.5, { x: brood.x, y: brood.y, ref: brood });
+    if (brood) offer('nurse', ant.role === ROLE.NURSE ? 0.5 : 0.32, { x: brood.x, y: brood.y, ref: brood });
   }
   if (!carrying) {
     if (!ant.digGoal) ant.digGoal = pickDigGoal(game, ant);

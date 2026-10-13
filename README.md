@@ -44,7 +44,7 @@ npm run build:atlas  # regenerates assets/atlas.png and assets/atlas.json
 | Inspect a cell or creature | select the INSPECT tool (`F`) and click; click an ant or enemy to see all its data (role, needs, task, target, carried item, path, memory, pheromones). `Esc` clears the selection |
 | Help | `H` |
 
-Rendering: ants and enemies are drawn between their previous and current cell using the tick fraction, so motion is smooth at any speed. Sprites are mirrored when facing left; diggers face the cell they dig.
+Rendering: each move is a glide from the old cell to the new one, spread over the time the ant needs for one step (1 / speed ticks), so walking is smooth. Sprites are mirrored when facing left. The sprite follows the task: walk cycle, dig pose (head down, mandibles in the sand) while digging, bite pose while fighting.
 
 Tools: worker, queen (one per colony), soldier, raider (enemy ant), beetle, spider;
 paint sand, dirt, clay, rock, water; food (seed, leaf, sugar); egg, larva; eraser;
@@ -67,6 +67,10 @@ fall into ant-made tunnels or chambers, so a well-supported nest stays open.
 evaporates by x0.99. Every second tick it also diffuses to the four neighbours.
 Update cost is proportional to the number of cells. Empty layers are skipped.
 
+**Food supply.** Without food the colony starves. While the colony store is below 20, a pile of sugar (8 units) drops on the surface above the nest every 300 ticks (`FOOD_SUPPLY_*` in `src/config.js`). Player-placed food still works as before.
+
+**Crushing.** When loose sand lands on an ant, the ant is pushed into a free neighbouring cell and takes 8 damage (`CRUSH_DAMAGE`). If there is no free cell it stays and takes the hit; it dies only when its HP runs out.
+
 **Ants.** Roles: queen (immobile, lays eggs, starves without food), worker, digger,
 forager, nurse, soldier, scout, builder and undertaker. Each non-queen ant runs a
 utility-based decision every few ticks. It scores its needs (hunger, thirst, energy),
@@ -76,7 +80,7 @@ per tick), with a greedy fallback when no path is found. Ants follow pheromone
 gradients as well. Colonies assign new roles based on the largest deficit against
 target shares. Soldiers are called up on alarm, and builders after cave-ins.
 
-**Brood.** Egg (80 ticks) -> larva (needs 3 feedings from nurses and at least 160
+**Brood.** Any ant can feed larvae and carry eggs (nurses do it best). Egg (80 ticks) -> larva (needs 3 feedings from nurses and at least 160
 ticks; starves at hunger 100) -> pupa (120 ticks) -> adult. The adult's role is
 chosen by the colony. Brood buried under sand dies.
 

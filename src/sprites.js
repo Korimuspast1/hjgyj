@@ -153,50 +153,67 @@ export function rasterize(spec) {
 
 // ---- Entity specs ---------------------------------------------------------------
 
-/** Side-view ant facing right. `frame` alternates the leg pose for the walk cycle. */
-function antSpec(tint, frame, big = false) {
-  const headR = big ? 1.6 : 1.25;
-  const legs = frame === 0 ? [[2, 8], [4, 8], [6, 8]] : [[3, 8], [5, 8], [7, 8]];
+/**
+ * Side-view ant facing right, 12x9 pixels. Anatomy from back to front:
+ * gaster (abdomen), petiole (waist), thorax with three pairs of legs, head with
+ * eye, antennae and mandibles. Poses:
+ *   'walk'  - leg pose alternates with `frame` (0/1) for the walk cycle
+ *   'dig'   - head lowered, mandibles pushed into the ground (frame = leg step)
+ *   'bite'  - head raised, mandibles open (fighting)
+ * `big` gives soldiers a larger head.
+ */
+function antSpec(tint, pose = 'walk', frame = 0, big = false) {
+  const headR = big ? 1.9 : 1.6;
+  // Head centre moves with the pose: digging lowers it, biting raises it.
+  const head = pose === 'dig' ? [8.9, 4.4] : pose === 'bite' ? [8.9, 2.4] : [8.9, 3.2];
+  // Legs: attachment point on the body, then foot offsets for frame 0 and 1.
+  const legSets = [
+    { at: [7, 5], feet: [[2, -1], [0, 2]] }, // front
+    { at: [5, 5], feet: [[-1, 2], [2, -1]] }, // middle
+    { at: [3, 6], feet: [[-2, 0], [-1, 1]] }, // hind
+  ];
+  const lines = [
+    [8, 1, 10, 0], // antenna forward
+    [8, 1, 6, 0], // antenna back
+  ];
+  const legLines = legSets.map(({ at, feet }) => {
+    const [dx, dy] = feet[frame & 1];
+    return [at[0], at[1], at[0] + dx, 8, 'ink'];
+  });
+  if (pose === 'bite') {
+    lines.push([10, 3, 12, 1], [10, 4, 12, 6]); // mandibles open
+  } else if (pose === 'dig') {
+    lines.push([10, 5, 10, 7]); // mandible in the sand
+  } else {
+    lines.push([10, 4, 11, 4]); // closed mandibles
+  }
   return {
-    w: big ? 11 : 10,
-    h: 10,
+    w: 12,
+    h: 9,
     shapes: [
-      { e: [2.6, 4.6, 2.3, 2.3], fill: tint.body, shade: tint.shade }, // abdomen
-      { e: [5.0, 4.6, 0.7, 0.6], fill: tint.shade }, // petiole (waist)
-      { e: [6.6, 4.2, 1.5, 1.4], fill: tint.body, shade: tint.shade }, // thorax
-      { e: [8.6 + (big ? 0.5 : 0), 3.1, headR, headR], fill: tint.body, shade: tint.shade }, // head
+      { e: [2.6, 4.4, 2.5, 2.2], fill: tint.shade, shade: tint.shade }, // gaster (darker, so segments read apart)
+      { e: [4.9, 4.9, 0.8, 0.8], fill: 'ink' }, // petiole (waist)
+      { e: [6.4, 4.0, 1.7, 1.6], fill: tint.body, shade: tint.shade }, // thorax
+      { e: [head[0], head[1], headR, headR], fill: tint.body, shade: tint.shade }, // head
     ],
-    lines: [
-      [8, 1, 9, 0],
-      [8, 1, 7, 0],
-    ],
-    dots: [...legs.map(([x, y]) => [x, y, 'ink']), [9 + (big ? 0.5 : 0) | 0, 3, 'ink']],
+    lines: [...lines, ...legLines],
+    dots: [[Math.round(head[0]) + 1, Math.round(head[1]) - 1, 'ink']], // eye
   };
 }
 
+/** Queen: the same skeleton, bigger gaster, pale body. */
 function queenSpec(frame) {
-  const legs = frame === 0 ? [[3, 8], [6, 8], [9, 8]] : [[4, 8], [7, 8], [10, 8]];
-  return {
-    w: 13,
-    h: 10,
-    shapes: [
-      { e: [5.2, 2.6, 3.4, 2.0], fill: 'glass1' }, // wings
-      { e: [3.2, 5.9, 2.6, 2.4], fill: 'pink', shade: 'violet' },
-      { e: [6.6, 4.8, 1.8, 1.6], fill: 'pink', shade: 'violet' },
-      { e: [9.8, 4.0, 1.6, 1.5], fill: 'pink', shade: 'violet' },
-    ],
-    lines: [
-      [10, 2, 12, 0],
-      [10, 2, 9, 0],
-    ],
-    dots: [...legs.map(([x, y]) => [x, y, 'ink']), [11, 3, 'ink']],
-  };
+  const spec = antSpec({ body: 'pink', shade: 'violet' }, 'walk', frame, false);
+  spec.shapes[0] = { e: [2.4, 4.6, 3.0, 2.8], fill: 'pink', shade: 'violet' };
+  spec.shapes.unshift({ e: [4.2, 2.0, 3.6, 1.2], fill: 'glass1' }); // wings
+  spec.w = 13;
+  return spec;
 }
 
+/** Raiders: red body with heavy mandibles. */
 function enemyAntSpec(frame) {
-  const spec = antSpec({ body: 'red', shade: 'dirt0' }, frame, false);
-  // Raiders have mandibles.
-  spec.dots.push([9, 4, 'ink'], [9, 5, 'ink']);
+  const spec = antSpec({ body: 'red', shade: 'dirt0' }, 'walk', frame, false);
+  spec.lines.push([10, 4, 12, 3, 'ink'], [10, 5, 12, 6, 'ink']);
   return spec;
 }
 
@@ -416,8 +433,12 @@ function missingSpec() {
 export function buildSpecs() {
   const specs = {};
   for (const [role, tint] of Object.entries(ROLE_TINTS)) {
-    specs[`ant_${role}_0`] = antSpec(tint, 0, !!tint.big);
-    specs[`ant_${role}_1`] = antSpec(tint, 1, !!tint.big);
+    const big = !!tint.big;
+    specs[`ant_${role}_0`] = antSpec(tint, 'walk', 0, big);
+    specs[`ant_${role}_1`] = antSpec(tint, 'walk', 1, big);
+    specs[`ant_${role}_dig0`] = antSpec(tint, 'dig', 0, big);
+    specs[`ant_${role}_dig1`] = antSpec(tint, 'dig', 1, big);
+    specs[`ant_${role}_bite`] = antSpec(tint, 'bite', 0, big);
   }
   specs.queen_0 = queenSpec(0);
   specs.queen_1 = queenSpec(1);

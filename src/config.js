@@ -48,11 +48,20 @@ export const LARVA_MIN_TICKS = 160;
 export const PUPA_TICKS = 120;
 export const LARVA_FEEDINGS = 3;
 
+// ---- Food supply ------------------------------------------------------------
+// Without new food the colony starves within a few minutes. A pile of sugar
+// (8 units) drops near the nest every FOOD_SUPPLY_INTERVAL ticks while the store
+// is low. Demand is about 0.005 per tick for the queen plus 1 per egg laid.
+export const FOOD_SUPPLY_INTERVAL = 300;   // 15 s at x1
+export const FOOD_SUPPLY_LOW = 20;         // only drop food while the store is below this
+export const FOOD_SUPPLY_SPREAD = 40;      // cells either side of the nest
+
 // ---- Cave-ins ---------------------------------------------------------------
 export const SUPPORT_MIN = 3;          // fewer solid neighbours than this = unstable sand
 export const CAVE_IN_DELAY = 14;       // ticks of instability before collapse
 export const CAVE_IN_CHECK_EVERY = 2;
 export const CAVE_IN_MAX_PER_CHECK = 40;
+export const CRUSH_DAMAGE = 8;        // sand landing on an ant pushes it aside and hurts it
 
 // ---- Tools ------------------------------------------------------------------
 export const BRUSH_SIZES = [1, 3, 5];
