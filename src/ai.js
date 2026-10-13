@@ -141,8 +141,10 @@ export function decideTask(ant, game) {
   // Food.
   if (!carrying) {
     const food = findFood(game, ant, colony);
-    if (food) offer('forage', 0.45, food);
-    else if (game.pheromones.get(LAYER.FOOD, here) > 1) offer('forage', 0.3, null);
+    // Hungry colonies push harder for food.
+    const hunger = colony && colony.foodStored < 5 ? 0.25 : 0;
+    if (food) offer('forage', 0.45 + hunger, food);
+    else if (game.pheromones.get(LAYER.FOOD, here) > 1) offer('forage', 0.3 + hunger, null);
   }
 
   // Colony work.
@@ -162,7 +164,8 @@ export function decideTask(ant, game) {
   if (!carrying) {
     const corpse = findCorpse(game, ant, colony);
     if (corpse) offer('collect', 0.4, corpse);
-    offer('scout', 0.25);
+    // Hungry colonies send ants out to search when no food is in sight.
+    offer('scout', 0.25 + (colony && colony.foodStored < 5 ? 0.3 : 0));
   }
 
   // Fallbacks.
@@ -302,13 +305,50 @@ function idleStep(ant, game) {
 }
 
 function scoutStep(ant, game) {
-  game.pheromones.deposit(LAYER.EXPLORE, game.world.index(ant.x, ant.y), 6);
-  if (!followGradient(ant, game, LAYER.EXPLORE, 'min')) wanderStep(ant, game);
+  const world = game.world;
+  game.pheromones.deposit(LAYER.EXPLORE, world.index(ant.x, ant.y), 6);
+  let target = ant.task.target;
+  if (!target || (ant.x === target.x && ant.y === target.y)) {
+    target = pickExploreTarget(game, ant);
+    ant.task.target = target;
+  }
+  if (!target) return setTask(ant, 'idle');
+  const result = walkTo(ant, game, target.x, target.y, 1);
+  if (result === 'arrived') {
+    ant.task.target = null; // pick the next unexplored spot
+  } else if (result === 'blocked') {
+    ant.task.fails = (ant.task.fails || 0) + 1;
+    ant.task.target = null;
+    if (ant.task.fails >= 4) setTask(ant, 'idle');
+  }
   const colony = game.colonyOf(ant);
   if (colony) {
-    const found = scanForFood(game.world, ant.x, ant.y, 3);
+    const found = scanForFood(world, ant.x, ant.y, 3);
     if (found >= 0) colony.noteFood(found);
   }
+  return undefined;
+}
+
+/**
+ * Samples passable cells near the scout and returns the one with the least
+ * explore pheromone (ties broken randomly). Sampling avoids walking in circles.
+ */
+function pickExploreTarget(game, ant) {
+  const world = game.world;
+  const field = game.pheromones.layers[LAYER.EXPLORE];
+  let best = null;
+  let bestValue = Infinity;
+  for (let k = 0; k < 12; k++) {
+    const x = ant.x + game.rng.int(31) - 15;
+    const y = ant.y + game.rng.int(31) - 15;
+    if (!world.canAntEnter(x, y)) continue;
+    const value = field[world.index(x, y)] + game.rng.next();
+    if (value < bestValue) {
+      bestValue = value;
+      best = { x, y };
+    }
+  }
+  return best;
 }
 
 /**
@@ -354,14 +394,18 @@ function digStep(ant, game) {
   return undefined;
 }
 
-/** Walks to a surface spot and drops sand (or removes a corpse). */
+/**
+ * Walks to a surface spot and drops sand (or removes a corpse). If no room is
+ * found after a few tries, the ant gives up the grain so it can dig or forage again.
+ */
 function dumpStep(ant, game) {
   const world = game.world;
   let target = ant.task.target;
   if (!target) target = findSurface(game, ant);
   if (!target) return setTask(ant, 'idle');
   ant.task.target = target;
-  const result = walkTo(ant, game, target.x, target.y, 0);
+  // Radius 1: a diagonal neighbour of the surface cell is close enough to drop from.
+  const result = walkTo(ant, game, target.x, target.y, 1);
   if (result === 'arrived') {
     if (ant.carrying === 'corpse') {
       // Undertakers take corpses out of the box entirely.
@@ -376,10 +420,23 @@ function dumpStep(ant, game) {
       setTask(ant, 'idle');
       ant.decisionTimer = 0;
     } else {
+      ant.task.fails = (ant.task.fails || 0) + 1;
+      if (ant.task.fails >= 3) {
+        ant.inventory = null; // no room anywhere near: let the grain go
+        setTask(ant, 'idle');
+      } else {
+        ant.task.target = null; // pick another surface cell next tick
+      }
+    }
+  } else if (result === 'blocked') {
+    // Decisions reset stuckTicks, so count blocked attempts on the task itself.
+    ant.task.fails = (ant.task.fails || 0) + 1;
+    if (ant.task.fails >= 3) {
+      ant.inventory = null;
+      setTask(ant, 'idle');
+    } else {
       ant.task.target = null;
     }
-  } else if (result === 'blocked' && ant.stuckTicks > 25) {
-    setTask(ant, 'idle');
   }
   return undefined;
 }
@@ -764,9 +821,11 @@ function findSurface(game, ant) {
   let best = null;
   let bestDist = Infinity;
   for (const i of game.surfaceCells) {
+    if (game.occupancy[i] > 0) continue; // do not crowd onto an occupied cell
     const x = game.world.xOf(i);
     const y = game.world.yOf(i);
-    const d = manhattan(ant.x, ant.y, x, y);
+    // Small random jitter spreads ants over several surface cells instead of one.
+    const d = manhattan(ant.x, ant.y, x, y) + game.rng.next() * 6;
     if (d < bestDist) {
       bestDist = d;
       best = { x, y };
@@ -776,20 +835,26 @@ function findSurface(game, ant) {
 }
 
 /**
- * Where a carried grain can land: an air cell beside the ant with solid ground
- * beneath it (so it forms a pile), never above the ant (it would crush it).
+ * Where a carried grain can land: an unoccupied air cell with solid ground
+ * beneath it (so it forms a pile), searched in rings out to radius 4. Cells
+ * above the ant are never used (grains would fall on it).
  */
 function findDropSpot(game, ant) {
   const world = game.world;
-  const options = [];
-  for (let d = 0; d < 8; d++) {
-    const x = ant.x + DX[d];
-    const y = ant.y + DY[d];
-    if (DY[d] < 0) continue;
-    if (world.typeAt(x, y) !== CELL.EMPTY) continue;
-    if (!SOLID[world.typeAt(x, y + 1)]) continue;
-    if (game.occupancy[world.index(x, y)] > 0) continue;
-    options.push({ x, y });
+  for (let r = 1; r <= 4; r++) {
+    const options = [];
+    for (let dy = 0; dy <= 1; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), dy) !== r && !(dy === 0 && Math.abs(dx) === r)) continue;
+        const x = ant.x + dx;
+        const y = ant.y + dy;
+        if (world.typeAt(x, y) !== CELL.EMPTY) continue;
+        if (!SOLID[world.typeAt(x, y + 1)]) continue;
+        if (game.occupancy[world.index(x, y)] > 0) continue;
+        options.push({ x, y });
+      }
+    }
+    if (options.length) return game.rng.pick(options);
   }
-  return options.length ? game.rng.pick(options) : null;
+  return null;
 }
