@@ -1,0 +1,22 @@
+CREDITS
+=======
+
+Formicarium - 2D pixel-art ant colony sandbox
+
+Code
+----
+All source code in this repository (src/, test/, tools/, index.html) was written
+for this project. It is released under the MIT licence (see package.json).
+
+Art
+---
+All sprites, UI icons and the 3x5 bitmap font are original. They are defined in
+code (src/sprites.js and src/font.js) and packed into assets/atlas.png by
+tools/build-atlas.mjs. No image, font or sound files were taken from other
+authors, and no third-party asset packs (such as Kenney, OpenGameArt, itch.io
+or similar) are used.
+
+Third-party software
+--------------------
+The game has no runtime dependencies. It runs with plain browser APIs.
+Development tests use only Node.js built-ins (node:test, node:assert, zlib).

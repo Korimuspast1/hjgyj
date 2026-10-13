@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Formicarium - ant colony sandbox</title>
+    <style>
+      /* Integer-friendly scaling: the canvas keeps a 480:318 ratio and fits the window. */
+      html, body { margin: 0; height: 100%; background: #0b0806; overflow: hidden; }
+      body { display: flex; align-items: center; justify-content: center; }
+      canvas {
+        display: block;
+        width: min(100vw, calc(100vh * 480 / 318));
+        height: auto;
+        aspect-ratio: 480 / 318;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        cursor: crosshair;
+        touch-action: none;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game" width="480" height="318"></canvas>
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

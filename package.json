@@ -1,0 +1,16 @@
+{
+  "name": "hjgyj-formicarium",
+  "version": "1.0.0",
+  "description": "2D pixel-art ant colony sandbox (formicarium cross-section) in vanilla HTML5 canvas.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "test": "node --test test/*.test.js",
+    "build:atlas": "node tools/build-atlas.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
