@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+<title>DEADBLOCK — Pixel Zombie Survival</title>
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<div id="wrap">
+  <canvas id="screen"></canvas>
+
+  <!-- ============ HUD ============ -->
+  <div id="hud" class="hidden">
+    <div id="hud-left">
+      <div class="bar hp"><div class="fill" id="bar-hp"></div><span class="lbl" id="txt-hp">100</span></div>
+      <div class="bar st"><div class="fill" id="bar-st"></div></div>
+      <div class="bar hun"><div class="fill" id="bar-hun"></div></div>
+      <div class="bar thi"><div class="fill" id="bar-thi"></div></div>
+      <div id="statuses"></div>
+    </div>
+
+    <div id="hud-right">
+      <div id="clock">Day 1 — 08:00</div>
+      <canvas id="minimap" width="170" height="170"></canvas>
+      <div id="score">Kills: 0 &nbsp;|&nbsp; Lvl 1</div>
+    </div>
+
+    <div id="hotbar"></div>
+    <div id="log"></div>
+    <div id="prompt" class="hidden"></div>
+    <div id="crosshair"></div>
+    <div id="dmgflash"></div>
+    <div id="vignette"></div>
+    <div id="subtitle"></div>
+  </div>
+
+  <!-- ============ MAIN MENU ============ -->
+  <div id="menu" class="screen">
+    <div class="panel menu-panel">
+      <h1>DEADBLOCK</h1>
+      <p class="tag">procedural city &middot; zombies &middot; survive</p>
+      <label>Seed <input id="seed-input" type="text" placeholder="random" /></label>
+      <label>Difficulty
+        <select id="diff-input">
+          <option value="0">Survivor</option>
+          <option value="1" selected>Walker</option>
+          <option value="2">Nightmare</option>
+        </select>
+      </label>
+      <button id="btn-start" class="big">NEW GAME</button>
+      <div class="cols">
+        <div>
+          <h3>Controls</h3>
+          <ul class="keys">
+            <li><b>WASD</b> move</li>
+            <li><b>Mouse</b> aim</li>
+            <li><b>Shift</b> sprint</li>
+            <li><b>Ctrl</b> crouch</li>
+            <li><b>LMB / Space</b> attack / shoot</li>
+            <li><b>R</b> reload</li>
+            <li><b>E</b> interact / search</li>
+            <li><b>F</b> flashlight</li>
+            <li><b>1-5</b> quick use</li>
+            <li><b>Tab</b> inventory</li>
+            <li><b>C</b> crafting</li>
+            <li><b>M</b> map</li>
+            <li><b>Esc</b> pause</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Survival tips</h3>
+          <ul class="tips">
+            <li>Zombies see poorly at night — but they hear gunshots from far away.</li>
+            <li>Search houses for food, water, meds and weapons.</li>
+            <li>Wood + rag makes bandages. Alcohol + rag makes a molotov.</li>
+            <li>Doors slow zombies down. Windows do not.</li>
+            <li>Keep stamina for the run, not the walk.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PAUSE ============ -->
+  <div id="pause" class="screen hidden">
+    <div class="panel">
+      <h2>PAUSED</h2>
+      <label>Volume <input id="vol-input" type="range" min="0" max="100" value="55" /></label>
+      <label>Zoom <input id="zoom-input" type="range" min="2" max="5" value="3" /></label>
+      <button id="btn-resume" class="big">RESUME</button>
+      <button id="btn-quit">ABANDON RUN</button>
+    </div>
+  </div>
+
+  <!-- ============ INVENTORY ============ -->
+  <div id="inventory" class="screen hidden">
+    <div class="panel wide">
+      <h2>SURVIVOR</h2>
+      <div id="inv-layout">
+        <div id="inv-equip">
+          <div class="slot big" id="eq-hands"><span class="hint">hands</span></div>
+          <div class="slot big" id="eq-back"><span class="hint">backpack</span></div>
+          <div id="inv-stats"></div>
+        </div>
+        <div>
+          <div id="inv-grid"></div>
+          <div id="inv-detail"><span class="dim">Select an item.</span></div>
+        </div>
+      </div>
+      <button class="close-btn" data-close="inventory">CLOSE (Tab)</button>
+    </div>
+  </div>
+
+  <!-- ============ CRAFTING ============ -->
+  <div id="crafting" class="screen hidden">
+    <div class="panel wide">
+      <h2>CRAFTING</h2>
+      <div id="craft-list"></div>
+      <button class="close-btn" data-close="crafting">CLOSE (C)</button>
+    </div>
+  </div>
+
+  <!-- ============ BIG MAP ============ -->
+  <div id="mapview" class="screen hidden">
+    <div class="panel map-panel">
+      <h2>MAP</h2>
+      <canvas id="bigmap" width="760" height="560"></canvas>
+      <button class="close-btn" data-close="mapview">CLOSE (M)</button>
+    </div>
+  </div>
+
+  <!-- ============ DEATH ============ -->
+  <div id="dead" class="screen hidden">
+    <div class="panel">
+      <h2 class="blood">YOU DIED</h2>
+      <p id="dead-info"></p>
+      <button id="btn-retry" class="big">TRY AGAIN</button>
+      <button id="btn-menu">MAIN MENU</button>
+    </div>
+  </div>
+</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
