@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Project Zomboid 2D Simulator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0b0d0e;
+      font-family: 'Share Tech Mono', monospace;
+      color: #d1d5db;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #111417;
+    }
+
+    canvas#gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* PZ Classic Side Bar (Left Icons) */
+    .pz-sidebar {
+      position: absolute;
+      top: 50px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 50;
+    }
+
+    .pz-btn-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(180deg, #2a2e33 0%, #171b1e 100%);
+      border: 1px solid #4a545c;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.1), 2px 2px 4px rgba(0,0,0,0.7);
+      color: #9ba3a9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.1s ease;
+      border-radius: 2px;
+    }
+
+    .pz-btn-icon:hover, .pz-btn-icon.active {
+      background: linear-gradient(180deg, #3d454d 0%, #22292f 100%);
+      border-color: #8da3b5;
+      color: #f3f4f6;
+    }
+
+    /* Top Time/Speed Bar */
+    .pz-timebar {
+      position: absolute;
+      top: 10px;
+      right: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(18, 22, 26, 0.88);
+      border: 1px solid #3c444c;
+      padding: 6px 14px;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: #e5e7eb;
+      letter-spacing: 1px;
+      border-radius: 3px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      z-index: 50;
+    }
+
+    .pz-speed-controls {
+      display: flex;
+      gap: 3px;
+      margin-left: 10px;
+    }
+
+    .pz-speed-btn {
+      background: #252b31;
+      border: 1px solid #444f59;
+      color: #aaa;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    .pz-speed-btn.active {
+      background: #475a69;
+      color: #fff;
+      border-color: #7b94a8;
+    }
+
+    /* PZ Moodles (Top Right column) */
+    .pz-moodles-container {
+      position: absolute;
+      top: 60px;
+      right: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .pz-moodle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 18, 21, 0.85);
+      border: 1px solid #374151;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+      animation: moodle-pop 0.3s ease-out;
+      pointer-events: auto;
+    }
+
+    @keyframes moodle-pop {
+      from { transform: translateX(20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .moodle-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .moodle-danger { background: #7f1d1d; color: #fca5a5; }
+    .moodle-warning { background: #78350f; color: #fde68a; }
+    .moodle-neutral { background: #1e3a5f; color: #93c5fd; }
+    .moodle-good { background: #14532d; color: #86efac; }
+
+    /* PZ Classic Draggable Panels */
+    .pz-window {
+      position: absolute;
+      background: #1a1e22;
+      border: 2px solid #3d464f;
+      border-top: 2px solid #5a6673;
+      box-shadow: 4px 6px 15px rgba(0,0,0,0.8);
+      color: #cfd8dc;
+      z-index: 60;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    .pz-window-header {
+      background: linear-gradient(180deg, #323b44 0%, #1e242a 100%);
+      padding: 6px 10px;
+      border-bottom: 1px solid #3d464f;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      color: #e2e8f0;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pz-close-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .pz-close-btn:hover { color: #ef4444; }
+
+    /* Inventory Window */
+    #inventory-window {
+      top: 70px;
+      left: 60px;
+      width: 440px;
+      height: 380px;
+    }
+
+    .pz-inv-cols {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      background: #14181c;
+    }
+
+    .pz-inv-side {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #2d343c;
+    }
+    .pz-inv-side:last-child {
+      border-right: none;
+    }
+
+    .pz-inv-header {
+      background: #232930;
+      padding: 5px 8px;
+      border-bottom: 1px solid #374151;
+      font-size: 11px;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .pz-inv-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .pz-item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1b2026;
+      border: 1px solid #28313a;
+      padding: 5px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.1s;
+    }
+
+    .pz-item-row:hover {
+      background: #28333e;
+      border-color: #4b5d6e;
+    }
+
+    .pz-item-row.selected {
+      background: #334454;
+      border-color: #60a5fa;
+    }
+
+    .pz-item-icon {
+      font-size: 16px;
+      width: 22px;
+      text-align: center;
+    }
+    .pz-item-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pz-item-weight {
+      color: #6b7280;
+      font-size: 11px;
+    }
+
+    .pz-inv-actions {
+      display: flex;
+      gap: 4px;
+      padding: 6px;
+      background: #1c2227;
+      border-top: 1px solid #2e3740;
+    }
+
+    .pz-btn {
+      background: linear-gradient(180deg, #323d47 0%, #1e252c 100%);
+      border: 1px solid #4a5764;
+      color: #e5e7eb;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      border-radius: 2px;
+    }
+
+    .pz-btn:hover {
+      background: linear-gradient(180deg, #42515f 0%, #29343e 100%);
+      border-color: #71879c;
+    }
+    .pz-btn:active {
+      background: #181f25;
+    }
+
+    /* Health Window (PZ Body Mannequin) */
+    #health-window {
+      top: 120px;
+      left: 320px;
+      width: 320px;
+      height: 380px;
+    }
+
+    .pz-health-content {
+      display: flex;
+      padding: 12px;
+      gap: 16px;
+      flex: 1;
+      background: #15191d;
+    }
+
+    .pz-body-diagram {
+      position: relative;
+      width: 110px;
+      height: 250px;
+      background: #1f252b;
+      border: 1px solid #36414c;
+      border-radius: 4px;
+    }
+
+    .body-part {
+      position: absolute;
+      background: #22c55e;
+      opacity: 0.85;
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+    .part-head { top: 12px; left: 41px; width: 28px; height: 32px; border-radius: 50%; }
+    .part-torso { top: 48px; left: 33px; width: 44px; height: 60px; }
+    .part-arm-l { top: 50px; left: 14px; width: 14px; height: 75px; }
+    .part-arm-r { top: 50px; right: 14px; width: 14px; height: 75px; }
+    .part-groin { top: 112px; left: 33px; width: 44px; height: 20px; }
+    .part-leg-l { top: 136px; left: 33px; width: 19px; height: 95px; }
+    .part-leg-r { top: 136px; right: 33px; width: 19px; height: 95px; }
+
+    .pz-health-stats {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .stat-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .stat-label {
+      display: flex;
+      justify-content: space-between;
+      color: #9ca3af;
+      font-size: 11px;
+    }
+
+    .stat-bar {
+      height: 9px;
+      background: #0f1316;
+      border: 1px solid #374151;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .stat-fill {
+      height: 100%;
+      background: #22c55e;
+      transition: width 0.2s;
+    }
+    .stat-fill.danger { background: #ef4444; }
+    .stat-fill.warn { background: #eab308; }
+
+    /* Crafting Window */
+    #crafting-window {
+      top: 150px;
+      left: 200px;
+      width: 360px;
+      height: 320px;
+    }
+
+    /* Hotbar / Weapon Slots */
+    .pz-hotbar {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      background: rgba(18, 22, 26, 0.9);
+      border: 1px solid #3c4652;
+      padding: 6px 12px;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+      z-index: 50;
+    }
+
+    .hotbar-slot {
+      width: 48px;
+      height: 48px;
+      background: #1a2026;
+      border: 1px solid #36414c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .hotbar-slot.active {
+      border-color: #60a5fa;
+      background: #253342;
+      box-shadow: inset 0 0 6px rgba(96, 165, 250, 0.4);
+    }
+
+    .hotbar-key {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .hotbar-name {
+      position: absolute;
+      bottom: 2px;
+      font-size: 9px;
+      color: #94a3b8;
+      max-width: 44px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* Context menu / Interaction popup */
+    #context-menu {
+      position: absolute;
+      display: none;
+      background: #171c21;
+      border: 1px solid #4a5664;
+      box-shadow: 3px 4px 10px rgba(0,0,0,0.8);
+      z-index: 100;
+      flex-direction: column;
+      min-width: 140px;
+    }
+
+    .context-item {
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .context-item:hover {
+      background: #2c3947;
+      color: #93c5fd;
+    }
+
+    /* Action Progress Bar (like reading, looting, bandaging in PZ) */
+    .pz-action-bar-container {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 180px;
+      background: rgba(15, 18, 22, 0.9);
+      border: 1px solid #4b5563;
+      padding: 4px;
+      border-radius: 3px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 70;
+      pointer-events: none;
+    }
+
+    .pz-action-text {
+      font-size: 11px;
+      text-align: center;
+      color: #e2e8f0;
+    }
+
+    .pz-action-progress {
+      height: 8px;
+      background: #111827;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .pz-action-fill {
+      height: 100%;
+      width: 0%;
+      background: #3b82f6;
+    }
+
+    /* Bottom Info Help */
+    .pz-controls-help {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(15, 20, 24, 0.75);
+      border: 1px solid #2d3748;
+      padding: 6px 10px;
+      font-size: 11px;
+      color: #9ca3af;
+      border-radius: 3px;
+      pointer-events: none;
+      line-height: 1.5;
+    }
+
+    .key-badge {
+      display: inline-block;
+      background: #374151;
+      color: #f3f4f6;
+      padding: 0 4px;
+      border-radius: 2px;
+      font-family: monospace;
+      font-size: 10px;
+      border: 1px solid #4b5563;
+    }
+
+    /* Notification log in top left corner */
+    .pz-log-feed {
+      position: absolute;
+      top: 12px;
+      left: 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    .pz-log-entry {
+      background: rgba(18, 23, 28, 0.8);
+      border-left: 3px solid #60a5fa;
+      padding: 3px 8px;
+      font-size: 11px;
+      color: #d1d5db;
+      border-radius: 0 2px 2px 0;
+      animation: fadeOutLog 5s forwards;
+    }
+
+    @keyframes fadeOutLog {
+      0% { opacity: 0; transform: translateY(-4px); }
+      10% { opacity: 1; transform: translateY(0); }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <!-- 2D Canvas -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Left Sidebar (PZ Style) -->
+  <div class="pz-sidebar">
+    <div class="pz-btn-icon" id="btn-inv" title="Инвентарь (I / TAB)">🎒</div>
+    <div class="pz-btn-icon" id="btn-health" title="Здоровье (H)">❤️</div>
+    <div class="pz-btn-icon" id="btn-craft" title="Крафт (B)">🔨</div>
+    <div class="pz-btn-icon" id="btn-zombies" title="Заспавнить зомби">+</div >
+    <div class="pz-btn-icon" id="btn-flashlight" title="Фонарик (F)">🔦</div>
+  </div>
+
+  <!-- Top Time/Clock Bar -->
+  <div class="pz-timebar">
+    <span id="pz-clock">09:00 AM</span>
+    <span style="color:#6b7280;">|</span>
+    <span id="pz-day">День 1</span>
+    <div class="pz-speed-controls">
+      <button class="pz-speed-btn" data-speed="0">⏸</button>
+      <button class="pz-speed-btn active" data-speed="1">▶</button>
+      <button class="pz-speed-btn" data-speed="2">▶▶</button>
+      <button class="pz-speed-btn" data-speed="5">▶▶▶</button>
+    </div>
+  </div>
+
+  <!-- Moodles List (Right side) -->
+  <div class="pz-moodles-container" id="moodles-container">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Event Log Feed -->
+  <div class="pz-log-feed" id="log-feed"></div>
+
+  <!-- Action progress bar -->
+  <div class="pz-action-bar-container" id="action-bar">
+    <div class="pz-action-text" id="action-text">Обыск шкафа...</div>
+    <div class="pz-action-progress">
+      <div class="pz-action-fill" id="action-fill"></div>
+    </div>
+  </div>
+
+  <!-- Hotbar -->
+  <div class="pz-hotbar">
+    <div class="hotbar-slot active" data-slot="1" id="slot-1">
+      <span class="hotbar-key">1</span>
+      <span class="hotbar-icon" id="slot-1-icon">🪓</span>
+      <span class="hotbar-name" id="slot-1-name">Топор</span>
+    </div>
+    <div class="hotbar-slot" data-slot="2" id="slot-2">
+      <span class="hotbar-key">2</span>
+      <span class="hotbar-icon" id="slot-2-icon">🏏</span>
+      <span class="hotbar-name" id="slot-2-name">Бита</span>
+    </div>
+    <div class="hotbar-slot" data-slot="3" id="slot-3">
+      <span class="hotbar-key">3</span>
+      <span class="hotbar-icon" id="slot-3-icon">🍳</span>
+      <span class="hotbar-name" id="slot-3-name">Сковорода</span>
+    </div>
+    <div class="hotbar-slot" data-slot="4" id="slot-4">
+      <span class="hotbar-key">4</span>
+      <span class="hotbar-icon" id="slot-4-icon">🥫</span>
+      <span class="hotbar-name" id="slot-4-name">Еда</span>
+    </div>
+    <div class="hotbar-slot" data-slot="5" id="slot-5">
+      <span class="hotbar-key">5</span>
+      <span class="hotbar-icon" id="slot-5-icon">🩹</span>
+      <span class="hotbar-name" id="slot-5-name">Бинт</span>
+    </div>
+  </div>
+
+  <!-- Bottom Controls Help -->
+  <div class="pz-controls-help">
+    <div><span class="key-badge">WASD</span> Передвижение | <span class="key-badge">L-Shift</span> Бег | <span class="key-badge">L-Ctrl / ПКМ</span> Прицеливание</div>
+    <div><span class="key-badge">ЛКМ</span> Удар/Атака оружием | <span class="key-badge">E</span> Взаимодействие / Обыск контейнера</div>
+    <div><span class="key-badge">F</span> Вкл/выкл фонарик | <span class="key-badge">I</span> Инвентарь | <span class="key-badge">H</span> Здоровье | <span class="key-badge">B</span> Крафт</div>
+    <div><span class="key-badge">Q</span> Кричать ("Эй, сюда!") | Зомби нейтральные, бродят вокруг</div>
+  </div>
+
+  <!-- Inventory Window -->
+  <div class="pz-window" id="inventory-window">
+    <div class="pz-window-header">
+      <span>🎒 ИНВЕНТАРЬ (ЛУТ / РЮКЗАК)</span>
+      <button class="pz-close-btn" id="close-inv">✕</button>
+    </div>
+    <div class="pz-inv-cols">
+      <!-- Player Inventory -->
+      <div class="pz-inv-side">
+        <div class="pz-inv-header">
+          <span>РЮКЗАК ВЫЖИВШЕГО</span>
+          <span id="player-weight">3.8 / 15.0 кг</span>
+        </div>
+        <div class="pz-inv-list" id="player-items">
+          <!-- Items inserted via JS -->
+        </div>
+        <div class="pz-inv-actions">
+          <button class="pz-btn" id="btn-use-item">Использовать / Съесть</button>
+          <button class="pz-btn" id="btn-drop-item">Выбросить</button>
+        </div>
+      </div>
+      <!-- Container / Ground Inventory -->
+      <div class="pz-inv-side">
+        <div class="pz-inv-header">
+          <span id="container-name">РЯДОМ / ЗЕМЛЯ</span>
+          <span id="container-weight">0.0 кг</span>
+        </div>
+        <div class="pz-inv-list" id="container-items">
+          <!-- Container items -->
+        </div>
+        <div class="pz-inv-actions">
+          <button class="pz-btn" id="btn-loot-all">Взять всё</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Health Window (PZ Body Mannequin) -->
+  <div class="pz-window" id="health-window" style="display:none;">
+    <div class="pz-window-header">
+      <span>❤️ СОСТОЯНИЕ ЗДОРОВЬЯ</span>
+      <button class="pz-close-btn" id="close-health">✕</button>
+    </div>
+    <div class="pz-health-content">
+      <div class="pz-body-diagram">
+        <div class="body-part part-head" id="part-head" title="Голова: В норме"></div>
+        <div class="body-part part-torso" id="part-torso" title="Торс: В норме"></div>
+        <div class="body-part part-arm-l" id="part-arm-l" title="Левая рука: В норме"></div>
+        <div class="body-part part-arm-r" id="part-arm-r" title="Правая рука: В норме"></div>
+        <div class="body-part part-groin" id="part-groin" title="Пах: В норме"></div>
+        <div class="body-part part-leg-l" id="part-leg-l" title="Левая нога: В норме"></div>
+        <div class="body-part part-leg-r" id="part-leg-r" title="Правая нога: В норме"></div>
+      </div>
+      <div class="pz-health-stats">
+        <div class="stat-row">
+          <div class="stat-label"><span>ОБЩЕЕ ЗДОРОВЬЕ</span><span id="val-health">100%</span></div>
+          <div class="stat-bar"><div class="stat-fill" id="bar-health" style="width: 100%;"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label"><span>ВЫНОСЛИВОСТЬ</span><span id="val-stamina">100%</span></div>
+          <div class="stat-bar"><div class="stat-fill" id="bar-stamina" style="width: 100%;"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label"><span>СЫТОСТЬ</span><span id="val-hunger">100%</span></div>
+          <div class="stat-bar"><div class="stat-fill" id="bar-hunger" style="width: 90%;"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label"><span>ЖАЖДА</span><span id="val-thirst">100%</span></div>
+          <div class="stat-bar"><div class="stat-fill" id="bar-thirst" style="width: 95%;"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label"><span>УСТАЛОСТЬ</span><span id="val-fatigue">0%</span></div>
+          <div class="stat-bar"><div class="stat-fill warn" id="bar-fatigue" style="width: 5%;"></div></div>
+        </div>
+        <div style="margin-top:auto;">
+          <button class="pz-btn" style="width:100%;" id="btn-heal-self">🩹 Перевязать раны</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crafting Window -->
+  <div class="pz-window" id="crafting-window" style="display:none;">
+    <div class="pz-window-header">
+      <span>🔨 РЕМЕСЛО (КРАФТ)</span>
+      <button class="pz-close-btn" id="close-craft">✕</button>
+    </div>
+    <div style="padding: 10px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1;">
+      <div class="pz-item-row" id="craft-barricade">
+        <div class="pz-item-icon">🪵</div>
+        <div class="pz-item-name">
+          <div><b>Деревянная баррикада</b></div>
+          <div style="font-size:10px; color:#888;">Требуется: 2 доски, 4 гвоздя</div>
+        </div>
+        <button class="pz-btn" onclick="craftItem('barricade')">Создать</button>
+      </div>
+      <div class="pz-item-row" id="craft-spiked-bat">
+        <div class="pz-item-icon">🏏</div>
+        <div class="pz-item-name">
+          <div><b>Бита с гвоздями</b></div>
+          <div style="font-size:10px; color:#888;">Требуется: Бейсбольная бита, 5 гвоздей</div>
+        </div>
+        <button class="pz-btn" onclick="craftItem('spiked-bat')">Создать</button>
+      </div>
+      <div class="pz-item-row" id="craft-clean-bandage">
+        <div class="pz-item-icon">🩹</div>
+        <div class="pz-item-name">
+          <div><b>Стерильный бинт</b></div>
+          <div style="font-size:10px; color:#888;">Требуется: Тряпка, Бутылка воды</div>
+        </div>
+        <button class="pz-btn" onclick="craftItem('clean-bandage')">Создать</button>
+      </div>
+      <div class="pz-item-row" id="craft-campfire">
+        <div class="pz-item-icon">🔥</div>
+        <div class="pz-item-name">
+          <div><b>Кострище</b></div>
+          <div style="font-size:10px; color:#888;">Требуется: 3 доски, спички</div>
+        </div>
+        <button class="pz-btn" onclick="craftItem('campfire')">Создать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context popup -->
+  <div id="context-menu">
+    <div class="context-item" id="ctx-interact">Взаимодействовать</div>
+    <div class="context-item" id="ctx-examine">Осмотреть</div>
+    <div class="context-item" id="ctx-loot">Обыскать контейнер</div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
