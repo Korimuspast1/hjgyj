@@ -2,7 +2,7 @@
    phone.css — корпус телефона, экран, физические элементы
    ============================================================ */
 .phone-wrap{
-  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  position:absolute; left:50%; top:47%; transform:translate(-50%,-50%);
   z-index:10; display:grid; place-items:center;
 }
 .phone-shadow{
@@ -12,7 +12,7 @@
   filter:blur(12px); pointer-events:none;
 }
 .phone{
-  --pw:clamp(320px, 30vw, 400px);
+  --pw:clamp(230px, min(29vw, 31vh), 390px);
   --ph:calc(var(--pw) * 2.06);
   position:relative; width:var(--pw); height:var(--ph);
   border-radius:52px;
@@ -21,9 +21,8 @@
   padding:9px;
   box-shadow:
     0 0 0 2px #0a0d15,
-    0 40px 80px -30px rgba(0,0,0,.9),
-    0 0 90px -30px rgba(110,231,255,.25),
-    inset 0 0 22px rgba(255,255,255,.06);
+    0 30px 60px -25px rgba(0,0,0,.85),
+    inset 0 0 18px rgba(255,255,255,.05);
   transition:transform .5s cubic-bezier(.2,.9,.3,1.2), opacity .5s;
 }
 .phone.vibrate{ animation:vibe .5s linear; }
@@ -56,10 +55,13 @@
 /* ---- лоток SIM ---- */
 .simtray{
   position:absolute; right:6px; top:19%; width:26px; height:110px; z-index:22;
-  transition:transform .55s cubic-bezier(.3,1.4,.5,1);
-  transform:translateX(0);
+  transition:transform .55s cubic-bezier(.3,1.4,.5,1), opacity .22s ease .14s;
+  transform:translateX(0); opacity:0; pointer-events:none;
 }
-.simtray.out{ transform:translateX(96px); }
+.simtray.out{
+  transform:translateX(58px); opacity:1; pointer-events:auto;
+  transition:transform .55s cubic-bezier(.3,1.4,.5,1), opacity .16s ease;
+}
 .simtray__slot{
   position:relative; width:100%; height:100%; border-radius:12px;
   background:linear-gradient(180deg,#39415a,#1a2032);
@@ -67,8 +69,8 @@
   display:grid; place-items:center;
 }
 .simtray__notch{
-  width:16px; height:80px; border-radius:5px; border:2px dashed rgba(255,255,255,.16);
-  background:rgba(0,0,0,.35);
+  width:16px; height:80px; border-radius:5px; border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.42);
 }
 .simtray__slot.has-sim .simtray__notch{
   border-style:solid; border-color:#d4a72c;

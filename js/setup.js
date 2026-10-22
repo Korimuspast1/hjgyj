@@ -45,6 +45,8 @@ function renderStep() {
     foot.append(el('button', { class: 'btn btn--ghost btn--big', text: label, onclick: () => { SFX.tap(); idx++; renderStep(); } }));
 
   const step = STEPS[idx];
+  S.flags.setupStep = idx;   // сохраняем шаг: мастер настройки переживёт перезагрузку страницы
+  save();
 
   /* ---------- 1. приветствие ---------- */
   if (step === 'welcome') {
@@ -313,6 +315,7 @@ async function promptPass(n) {
 async function finishSetup() {
   const S = getState();
   S.phone.setupDone = true;
+  S.flags.setupStep = 0;
   S.phone.locked = false;
   S.phone.awake = true;
   S.stage = 'ready';

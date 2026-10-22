@@ -111,7 +111,7 @@ click('#hw-simhole'); await W(600);
 ok(S().world.trayOut, 'лоток SIM выдвинут из корпуса');
 dragIt('#prop-sim', 0, 0); await W(1000);
 ok(S().world.simInTray, 'SIM-карта легла в лоток');
-click('#simtray'); await W(1500);
+click('#simtray'); await wait(1400);   // фиксированная задержка: pushTray() спит 500 мс реального времени
 ok(!!q('.modal .opt'), 'появился выбор оператора');
 const opt = q('.modal .opt');
 ev(opt, 'click');
@@ -275,7 +275,7 @@ await api.openApp('messages'); await W(900);
 let guard = 0;
 while (q('.chat') && guard++ < 3) { api.back?.(); await W(700); }
 const listRows = [...(root('messages')?.querySelectorAll('.list__row') || [])];
-ok(listRows.length >= 5, 'чатов в списке: ' + listRows.length);
+ok(listRows.length >= (QUICK ? 4 : 5), 'чатов в списке: ' + listRows.length);   // в quick-режиме сюжетные чаты ещё не все
 ok(listRows.some((r) => /Мама/.test(r.textContent)), 'в списке есть мама');
 ok(listRows.some((r) => /Кирилл/.test(r.textContent)), 'в списке есть Кирилл');
 const momRow = listRows.find((r) => /Мама/.test(r.textContent));
@@ -360,7 +360,7 @@ ok(!!callKey, 'зелёная клавиша вызова есть');
 if (callKey) ev(callKey, 'click');
 await W(500);
 ok(!!q('.ussd'), 'USSD-запрос ушёл оператору (спиннер)');
-await wait(QUICK ? 1200 : 3000);
+await wait(QUICK ? 2200 : 3000);
 const ussdText = (q('#syslayer .sysdialog')?.textContent || '');
 ok(/Баланс/.test(ussdText), 'ответ сети *100# содержит баланс', ussdText.slice(0, 70).replace(/\s+/g, ' '));
 ok(/Минут|SMS|Пакет/.test(ussdText), 'в ответе есть остатки пакета');
@@ -405,7 +405,7 @@ if (decl) ev(decl, 'click');
 await W(1500);
 ok(S().calls.length > c0 && S().calls[S().calls.length - 1].dir === 'missed', 'отклонённый стал пропущенным', JSON.stringify(S().calls[S().calls.length - 1]));
 await okSoon(() => S().notifications.length > n0, 'уведомление о пропущенном');
-await wait(QUICK ? 1500 : 7000);
+await wait(QUICK ? 6500 : 7000);
 ok(S().messages.chats.kirill?.messages.some((m) => m.dir === 'in' && /голосов|набери|перезвон|не взял/i.test(m.text || '')), 'после пропущенного пришло сообщение на автоответчик');
 api.goHome(); await W(500);
 noErr('телефон', e0);
@@ -922,12 +922,12 @@ dragIt('.lock', 0, -150); await W(1100);
 ok(!!q('.pinpad'), 'свайп вверх открыл PIN-пад');
 ok(qa('.pinpad__key').length === 13, 'клавиш PIN-пада: ' + qa('.pinpad__key').length);
 for (const d of ['9', '9', '9', '9']) { const k = qa('.pinpad__key').find((x) => x.textContent.trim().startsWith(d)); if (k) { ev(k, 'click'); await W(220); } }
-await W(1800);
+await wait(1600);   // фикс: проверка PIN спит реальное время
 ok(S().phone.locked, 'неверный PIN не разблокировал');
 ok(/Неверный/.test(q('.pinpad__title')?.textContent || ''), 'показано сообщение об ошибке: ' + q('.pinpad__title')?.textContent);
 const u0 = S().stats.unlocks;
 for (const d of ['1', '2', '3', '4']) { const k = qa('.pinpad__key').find((x) => x.textContent.trim().startsWith(d)); if (k) { ev(k, 'click'); await W(220); } }
-await W(1900);
+await wait(1900);   // фикс: разблокировка спит реальное время
 ok(!S().phone.locked, 'верный PIN разблокировал телефон');
 ok(S().stats.unlocks === u0 + 1, 'счётчик разблокировок вырос: ' + S().stats.unlocks);
 ok(!!S().achievements.unlock, 'достижение «Разблокировка»');
@@ -947,9 +947,9 @@ await api.reboot(); await wait(QUICK ? 3000 : 6000);
 ok(S().phone.on && S().stage === 'ready', 'перезагрузка завершилась: on=' + S().phone.on + ' stage=' + S().stage);
 ok(!!S().achievements.reboot, 'достижение «Перезагрузка»');
 // меню питания (удержание физической кнопки)
-api.wake(); await W(800);
+api.wake(); await wait(900);
 const powerBtn = q('#hw-power');
-ev(powerBtn, 'pointerdown'); await wait(QUICK ? 1100 : 1600); ev(powerBtn, 'pointerup');
+ev(powerBtn, 'pointerdown'); await wait(QUICK ? 1700 : 1800); ev(powerBtn, 'pointerup');   // rAF в jsdom медленнее реального времени
 await okSoon(() => !!q('.power-menu'), 'долгое нажатие питания открывает меню питания');
 const pmBtns = [...qa('.power-menu button')].map((b) => b.textContent.trim());
 ok(pmBtns.length === 4, 'в меню 4 пункта', pmBtns.join(' / '));
@@ -966,11 +966,11 @@ ev(powerBtn, 'click'); await W(900);
 ok(S().phone.awake !== awakeBefore, 'короткое нажатие питания гасит/будит экран');
 api.wake(); await W(800);
 // выключение и включение через меню питания
-ev(powerBtn, 'pointerdown'); await wait(QUICK ? 1100 : 1600); ev(powerBtn, 'pointerup'); await W(900);
+ev(powerBtn, 'pointerdown'); await wait(QUICK ? 1700 : 1800); ev(powerBtn, 'pointerup'); await W(900);
 const offBtn = [...qa('.power-menu button')].find((b) => /Выключить/.test(b.textContent));
 if (offBtn) { ev(offBtn, 'click'); await wait(QUICK ? 1200 : 2200); }
 ok(S().phone.on === false, 'телефон выключился');
-ev(powerBtn, 'click'); await wait(QUICK ? 2500 : 5000);
+ev(powerBtn, 'click'); await wait(QUICK ? 4500 : 5000);   // загрузка после включения ~4 c
 ok(S().phone.on === true && S().stage === 'ready', 'телефон снова включился кнопкой питания');
 await clean();
 // громкость
@@ -994,6 +994,25 @@ ok(new Date(S().time.gameMs).getDate() !== now.getDate(), 'игровые сут
 ok(S().stats.msgsRecv > 0 || S().notifications.length > 0, 'жизнь идёт: получено сообщений ' + S().stats.msgsRecv + ', уведомлений ' + S().notifications.length);
 ok(new Date(S().time.gameMs).getDate() !== new Date().getDate() || true, 'игровое время идёт: ' + new Date(S().time.gameMs).toLocaleString('ru-RU'));
 noErr('система', e0);
+
+/* ============ 13. САМОВОССТАНОВЛЕНИЕ ПОСЛЕ ПЕРЕЗАГРУЗКИ СТРАНИЦЫ ============ */
+{
+  const e0 = errors.length;
+  const St = S();
+  // имитируем старый сейв: питание включено, но мастер настройки не завершён
+  St.phone.on = true; St.phone.awake = true; St.phone.setupDone = false;
+  St.stage = 'setup'; St.flags.setupStep = 2;
+  const notesBefore = qa('#layer-apps [data-app="notes"]').length;
+  await api.openApp('notes'); await wait(700);
+  ok(qa('#layer-apps [data-app="notes"]').length === notesBefore, 'приложение не открывается, пока настройка не завершена');
+  ok(!!q('#syslayer .setup'), 'вместо «мёртвого» домашнего экрана открывается мастер настройки');
+  ok(qa('#syslayer .setup__steps i').length >= 7, 'мастер настройки со шкалой шагов');
+  // уборка: возвращаем игру в ready и снимаем волшеб… мастер с экрана
+  q('#syslayer .setup')?.remove();
+  St.phone.setupDone = true; St.stage = 'ready'; St.flags.setupStep = 0;
+  api.refreshHome?.(); await wait(300);
+  noErr('самовосстановление', e0);
+}
 
 report();
 process.exit(failed === 0 && errors.length === 0 ? 0 : 1);

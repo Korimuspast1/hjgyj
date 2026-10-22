@@ -12,7 +12,7 @@ import { initShade, openShade, closeShade, toggleShade, isShadeOpen, applyBright
 import { initHome, render as renderHome, closeDrawer, isDrawerOpen, applyTheme } from './home.js';
 import { initLock, render as renderLock, tryUnlock, doUnlock, closePinPad, renderRecents, hideRecentsLayer } from './lock.js';
 import { bootSequence, shutdownSequence } from './boot.js';
-import { startSetupWizard } from './setup.js';
+import { startSetupWizard, setupActive } from './setup.js';
 import { toast, sysDialog, sysConfirm } from './ui.js';
 
 /* ======================= СОСТОЯНИЕ ПРИЛОЖЕНИЙ ======================= */
@@ -87,7 +87,13 @@ function activity() {
 /* ======================= ЗАПУСК ПРИЛОЖЕНИЙ ======================= */
 export async function openApp(id, params = {}, anim = {}) {
   const S = getState();
-  if (S.stage !== 'ready' || !S.phone.on) return;
+  if (!S.phone.on) return;
+  if (S.stage !== 'ready') {
+    // самовосстановление: телефон включён, но настройка не завершена —
+    // возвращаем мастера настройки вместо «мёртвого» домашнего экрана
+    if (!S.phone.setupDone && !setupActive()) startSetupWizard(S.flags.setupStep || 0);
+    return;
+  }
   if (!S.phone.awake) { screenOn(); await sleep(260); }
   if (S.phone.locked) { tryUnlock(); await sleep(320); if (S.phone.locked) return; }
 

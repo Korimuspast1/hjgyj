@@ -191,11 +191,11 @@ input, textarea{ font-family:inherit; }
 .prop--box .box__body{ position:relative; }
 
 /* скрепка */
-.prop--pin{ left:29%; bottom:22%; width:64px; }
+.prop--pin{ left:24%; bottom:24%; width:64px; }
 .prop--pin svg{ width:100%; filter:drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
 
 /* SIM */
-.prop--sim{ left:34%; bottom:9%; width:84px; }
+.prop--sim{ left:40%; bottom:9%; width:84px; }
 .simcard{
   position:relative; height:56px; border-radius:6px 12px 6px 6px;
   background:linear-gradient(135deg,#f8fafc,#c9d4e6);
@@ -216,7 +216,7 @@ input, textarea{ font-family:inherit; }
 .simcard__txt{ font-size:10px; font-weight:800; color:#334155; letter-spacing:.08em; margin-left:22px; }
 
 /* зарядка */
-.prop--charger{ right:6%; bottom:10%; width:min(190px,17vw); }
+.prop--charger{ right:5%; bottom:10%; width:min(190px,17vw); }
 .charger__brick{
   position:absolute; right:0; bottom:0; width:74px; height:52px; border-radius:10px;
   background:linear-gradient(180deg,#f1f5f9,#c3ccdb);
@@ -237,7 +237,7 @@ input, textarea{ font-family:inherit; }
 .prop--charger.plugged .charger__tip{ box-shadow:0 0 14px 4px #4ade8088; background:#4ade80; }
 
 /* кошелёк */
-.prop--wallet{ right:30%; bottom:7%; width:104px; }
+.prop--wallet{ left:28%; bottom:6%; width:104px; }
 .wallet__body{
   position:relative; height:58px; border-radius:9px;
   background:linear-gradient(180deg,#7c4a2d,#54301c);
@@ -268,7 +268,7 @@ input, textarea{ font-family:inherit; }
 .router__ants i:last-child{ transform:rotate(12deg); transform-origin:bottom; }
 
 /* растение */
-.prop--plant{ left:44%; bottom:38%; width:88px; cursor:default; }
+.prop--plant{ right:20%; bottom:38%; width:88px; cursor:default; }
 .prop--plant:hover{ transform:none; filter:none; }
 .plant__pot{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:52px; height:38px; border-radius:6px 6px 14px 14px; background:linear-gradient(180deg,#b4643c,#8a4a2b); }
 .plant__leaves i{
@@ -281,7 +281,7 @@ input, textarea{ font-family:inherit; }
 .plant__leaves i:nth-child(4){ transform:translateX(-50%) rotate(33deg); height:44px; }
 
 /* кружка */
-.prop--mug{ left:22%; bottom:6%; width:66px; }
+.prop--mug{ right:26%; bottom:6%; width:66px; }
 .mug__body{ position:absolute; bottom:0; left:0; width:48px; height:46px; border-radius:6px 6px 12px 12px; background:linear-gradient(180deg,#e2e8f0,#94a3b8); }
 .mug__body::after{ content:''; position:absolute; inset:4px 4px auto 4px; height:8px; border-radius:50%; background:#3b2a1e; }
 .mug__handle{ position:absolute; bottom:12px; left:44px; width:18px; height:22px; border:5px solid #cbd5e1; border-left:none; border-radius:0 12px 12px 0; }
@@ -308,19 +308,18 @@ input, textarea{ font-family:inherit; }
 
 /* ======================= HUD ======================= */
 .hud{
-  width:var(--hud-w); height:100%; overflow:auto; padding:16px 14px;
-  display:flex; flex-direction:column; gap:12px;
-  background:linear-gradient(180deg, rgba(13,18,32,.92), rgba(7,10,20,.96));
-  border-left:1px solid rgba(255,255,255,.07);
-  backdrop-filter:blur(6px);
+  width:var(--hud-w); height:100%; overflow:auto; padding:14px 12px;
+  display:flex; flex-direction:column; gap:10px;
+  background:#0b101d;
+  border-left:1px solid rgba(255,255,255,.08);
   scrollbar-width:thin; scrollbar-color:#2a3350 transparent;
 }
 .hud::-webkit-scrollbar{ width:8px } .hud::-webkit-scrollbar-thumb{ background:#2a3350; border-radius:8px }
 .hud__card{
-  background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);
-  border-radius:14px; padding:12px;
+  background:#101828; border:1px solid rgba(255,255,255,.07);
+  border-radius:12px; padding:12px 13px;
 }
-.hud__title{ font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; }
+.hud__title{ font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#7f8ba6; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; }
 .hud__title b{ color:var(--accent); font-size:11.5px; }
 .hud__row{ display:flex; justify-content:space-between; font-size:13px; padding:3.5px 0; color:#c6d0e4; }
 .hud__row b{ color:#fff; font-variant-numeric:tabular-nums; }
@@ -395,9 +394,17 @@ input, textarea{ font-family:inherit; }
 /* адаптив */
 @media (max-width:1080px){
   .game{ grid-template-columns:1fr; grid-template-rows:1fr auto; }
-  .hud{ width:100%; height:auto; max-height:34vh; flex-direction:row; overflow-x:auto; border-left:none; border-top:1px solid rgba(255,255,255,.07); }
-  .hud__card{ min-width:230px; }
+  .hud{
+    width:100%; height:auto; max-height:30vh;
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
+    padding:10px 12px; overflow:hidden;
+    border-left:none; border-top:1px solid rgba(255,255,255,.08);
+  }
+  .hud__card{ min-width:0; overflow:auto; }
   .prop--plant,.prop--mug{ display:none; }
+}
+@media (max-width:760px){
+  .hud{ grid-template-columns:repeat(2,minmax(0,1fr)); max-height:36vh; overflow-y:auto; }
 }
 @media (max-width:640px){
   .scene__poster,.prop--router{ display:none; }

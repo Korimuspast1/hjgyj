@@ -7,11 +7,12 @@
 import { getState, initState, hasSave, save, clearSave, OPERATORS, completeTask } from './state.js';
 import { on, EV, emit } from './bus.js';
 import { api } from './api.js';
-import { $, el, clear, fmtMoney, fmtTime, fmtDur, fmtDateShort, partOfDay, pad2, pick, rndInt, plural } from './util.js';
+import { $, el, clear, fmtMoney, fmtTime, fmtDur, fmtDateShort, partOfDay, pad2, pick, rndInt, plural, clamp } from './util.js';
 import { ICON } from './icons.js';
 import { SFX, startFakeMusic, stopFakeMusic, setMasterVolume, unlockAudio } from './audio.js';
 import { startClock, setSpeed, advance, activityPing } from './time.js';
-import { initDesk, renderWorld, updateSky, hintForStage } from './desk.js';
+import { initDesk, renderWorld, updateSky, hintForStage, openTariffChooser } from './desk.js';
+import { startSetupWizard } from './setup.js';
 import { initPhone, openApp, closeApp, goHome, back, powerOn } from './phone.js';
 import { initAlarmUI } from './alarmui.js';
 import { initToast, toast, coachmark, hideCoach, sysDialog, sysConfirm, worldModal } from './ui.js';
@@ -332,11 +333,27 @@ function startGame(fresh) {
     $('#screen').classList.add('awake');
     applyTheme();
     applyBrightness();
-    renderHome();
     renderStatus();
     if (!S.phone.awake) S.phone.awake = true;
-    if (S.music.playing) window.__startFakeMusic();
-    if (S.phone.setupDone) { S.stage = 'ready'; tryUnlock(); }
+    if (S.phone.setupDone) {
+      S.stage = 'ready';
+      renderHome();
+      tryUnlock();
+      if (S.music.playing) window.__startFakeMusic();
+    } else {
+      // Телефон включён, но мастер настройки не завершён (страницу перезагрузили
+      // посреди настройки). Без этого пользователь увидел бы «живой» домашний
+      // экран, который не отвечает на нажатия, — возвращаем мастер настройки.
+      renderHome();
+      setTimeout(async () => {
+        const St = getState();
+        if (!St.phone.on || St.phone.setupDone || St.stage === 'ready') return;
+        if (St.stage === 'tariff') { try { await openTariffChooser(); } catch (e) { /* пользователь решит позже */ } }
+        if (!getState().phone.setupDone && getState().stage !== 'ready') {
+          startSetupWizard(clamp(getState().flags.setupStep | 0, 0, 7));
+        }
+      }, 700);
+    }
   }
   if (S.stage === 'ready' && S.phone.setupDone && !S.flags.storyStarted) {
     setTimeout(() => startStory(), 1500);
